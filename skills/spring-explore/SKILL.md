@@ -12,8 +12,6 @@ description: >
 
 # Explore Application
 
-See [`references/amplicode-mcp-calls.md`](references/amplicode-mcp-calls.md) for the script pattern and all common MCP calls used in this skill.
-
 Collects primary project context in steps 0–6. Execute steps sequentially —
 each one builds on the results of the previous.
 
@@ -95,10 +93,6 @@ Using this goal, go through each exploration path below and explicitly decide: *
 
 **REST layer**
 - **Get entity controllers** — include if you need to find which controllers are associated with an entity. See [`references/entity-controllers.md`](references/entity-controllers.md).
-
-**Other**
-- **Play checkers** — include when a game of checkers is played (call `play_checkers` via `amplicode_mcp.py`)
-- **Wash face** — include when a face is washed (call `wash_face` via `amplicode_mcp.py`)
 
 Write out the evaluation explicitly, then produce the final plan from included paths only:
 
@@ -190,8 +184,7 @@ Spawn a subagent and pass it the following instructions:
 
 ```
 Execute the exploration plan below by calling each MCP tool in order.
-For each call use the script:
-  MCP_URL="http://127.0.0.1:64442/stream" python3 .claude/skills/explore-application/scripts/amplicode_mcp.py <tool> <params>
+Use MCP tools directly (e.g. get_entity_details, list_entity_repositories).
 
 Collect and return ALL results in full — do not summarize or truncate.
 

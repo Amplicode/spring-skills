@@ -8,7 +8,7 @@ and parent class.
 ## Step 0 — Resolve entity FQN (if unknown)
 
 If you only know the simple class name (e.g. `Pet`) but not the fully qualified name, resolve it first:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` with `regexPattern=<SimpleName>`.
+- Call `list_all_domain_entities` via MCP with `regexPattern=<SimpleName>`.
 
 ```
 list_all_domain_entities projectPath=<PATH> regexPattern=Pet
@@ -21,7 +21,7 @@ Skip this step if the FQN is already known.
 
 ## Step 1 — Get entity details
 
-For each entity, call `get_entity_details` via `amplicode_mcp.py`:
+For each entity, call `get_entity_details` via MCP:
 
 ```
 get_entity_details projectPath=<PATH> entityFqn=com.example.Pet

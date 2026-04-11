@@ -7,7 +7,7 @@ Finds Spring Data repositories associated with a given JPA entity.
 ## Steps
 
 For each entity you need to find repositories for:
-- Call `list_entity_repositories` via `amplicode_mcp.py` to get all repositories linked to the entity.
+- Call `list_entity_repositories` via MCP to get all repositories linked to the entity.
 
 From the result collect:
 - Repository class FQN

@@ -11,7 +11,7 @@ before implementing or modifying functionality.
 ## Step 0 — Resolve entity FQN (if unknown)
 
 If you only know the simple class name, resolve the FQN first:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` with `regexPattern=<SimpleName>`.
+- Call `list_all_domain_entities` via MCP with `regexPattern=<SimpleName>`.
 
 ```
 list_all_domain_entities projectPath=<PATH> regexPattern=Order
@@ -31,7 +31,7 @@ Follow [`entity-repositories.md`](entity-repositories.md) to get all repositorie
 ## Step 2 — Find all injecting beans
 
 For each repository FQN from step 1:
-- Call `get_bean_injection_info` via `amplicode_mcp.py` to find all beans that inject it.
+- Call `get_bean_injection_info` via MCP to find all beans that inject it.
 
 ```
 get_bean_injection_info projectPath=<PATH> beanClassQualifiedName=com.example.OrderRepository

@@ -14,7 +14,7 @@ the graph goes.
 ## Step 0 — Resolve entity FQN (if unknown)
 
 If you only know the simple class name (e.g. `Order`) but not the fully qualified name, resolve it first:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` with `regexPattern=<SimpleName>` to find the FQN.
+- Call `list_all_domain_entities` via MCP with `regexPattern=<SimpleName>` to find the FQN.
 
 ```
 list_all_domain_entities projectPath=<PATH> regexPattern=Order
@@ -30,7 +30,7 @@ Skip this step if the FQN is already known.
 Start from the entities identified in the main exploration (step 2 of the skill).
 
 For each entity:
-- Call `get_entity_details` via `amplicode_mcp.py` to get its fields and `relationships` array.
+- Call `get_entity_details` via MCP to get its fields and `relationships` array.
 - From `relationships`, collect all `targetEntity` values — these are the next level of entities.
 - Repeat for each discovered entity until the desired depth is reached or no new entities appear.
 

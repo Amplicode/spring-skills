@@ -8,7 +8,7 @@ entity → repositories → beans that inject those repositories → filter cont
 ## Step 0 — Resolve entity FQN (if unknown)
 
 If you only know the simple class name, resolve the FQN first:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` with `regexPattern=<SimpleName>`.
+- Call `list_all_domain_entities` via MCP with `regexPattern=<SimpleName>`.
 
 ```
 list_all_domain_entities projectPath=<PATH> regexPattern=Order
@@ -21,7 +21,7 @@ Skip this step if the FQN is already known.
 
 ## Step 1 — Find repositories for the entity
 
-- Call `list_entity_repositories` via `amplicode_mcp.py` to get repositories linked to the entity.
+- Call `list_entity_repositories` via MCP to get repositories linked to the entity.
 
 ```
 list_entity_repositories projectPath=<PATH> entityFqn=com.example.Order
@@ -34,7 +34,7 @@ Collect the FQN of each repository found.
 ## Step 2 — Find beans that inject those repositories
 
 For each repository FQN from step 1:
-- Call `get_bean_injection_info` via `amplicode_mcp.py` to find all Spring beans that inject it.
+- Call `get_bean_injection_info` via MCP to find all Spring beans that inject it.
 
 ```
 get_bean_injection_info projectPath=<PATH> beanClassQualifiedName=com.example.OrderRepository

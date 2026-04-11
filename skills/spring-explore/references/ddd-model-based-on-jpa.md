@@ -16,7 +16,7 @@ planning cascade strategies, writing queries, or simply understanding the domain
 ## Step 0 — Resolve entity FQN (if unknown)
 
 If you only know the simple class name (e.g. `Owner`) but not the fully qualified name, resolve it first:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` with `regexPattern=<SimpleName>` to find the FQN.
+- Call `list_all_domain_entities` via MCP with `regexPattern=<SimpleName>` to find the FQN.
 
 ```
 list_all_domain_entities projectPath=<PATH> regexPattern=Owner
@@ -37,8 +37,8 @@ For each entity relevant to the task, call `get_entity_details` (MCP tool) and c
 - `targetEntity` — the class on the other end of the relationship
 
 For each entity relevant to the task:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` to find entity qualified names (filter with `regexPattern` if needed).
-- Call `get_entity_details` via `amplicode_mcp.py` to get its `relationships` array with `cascadeTypes`, `fetchType`, and `targetEntity`.
+- Call `list_all_domain_entities` via MCP to find entity qualified names (filter with `regexPattern` if needed).
+- Call `get_entity_details` via MCP to get its `relationships` array with `cascadeTypes`, `fetchType`, and `targetEntity`.
 - Repeat `get_entity_details` for each related entity that appears in the relationships.
 
 ---

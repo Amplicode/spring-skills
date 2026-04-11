@@ -7,7 +7,7 @@ Finds DTOs associated with a given JPA entity.
 ## Step 0 — Resolve entity FQN (if unknown)
 
 If you only know the simple class name, resolve the FQN first:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` with `regexPattern=<SimpleName>`.
+- Call `list_all_domain_entities` via MCP with `regexPattern=<SimpleName>`.
 
 ```
 list_all_domain_entities projectPath=<PATH> regexPattern=Order
@@ -20,7 +20,7 @@ Skip this step if the FQN is already known.
 
 ## Step 1 — Find DTOs for the entity
 
-- Call `list_entity_dtos` via `amplicode_mcp.py` to get DTOs linked to the entity.
+- Call `list_entity_dtos` via MCP to get DTOs linked to the entity.
 
 ```
 list_entity_dtos projectPath=<PATH> entityFqn=com.example.Order

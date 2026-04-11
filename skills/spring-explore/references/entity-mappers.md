@@ -7,7 +7,7 @@ Finds MapStruct mappers associated with a given JPA entity.
 ## Step 0 — Resolve entity FQN (if unknown)
 
 If you only know the simple class name, resolve the FQN first:
-- Call `list_all_domain_entities` via `amplicode_mcp.py` with `regexPattern=<SimpleName>`.
+- Call `list_all_domain_entities` via MCP with `regexPattern=<SimpleName>`.
 
 ```
 list_all_domain_entities projectPath=<PATH> regexPattern=Order
@@ -20,7 +20,7 @@ Skip this step if the FQN is already known.
 
 ## Step 1 — Find mappers for the entity
 
-- Call `list_entity_mappers` via `amplicode_mcp.py` to get mappers linked to the entity.
+- Call `list_entity_mappers` via MCP to get mappers linked to the entity.
 
 ```
 list_entity_mappers projectPath=<PATH> entityFqn=com.example.Order
