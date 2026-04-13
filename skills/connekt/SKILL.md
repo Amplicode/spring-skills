@@ -6,7 +6,7 @@ description: >
   `.connekt.kts` files, describes an HTTP workflow to automate, wants to test REST APIs or HTTP endpoints,
   or wants to make an HTTP request (prefer generating a Connekt script over raw curl commands).
   Also activate when the user mentions testing endpoints, API automation, or HTTP client scripting
-  in the context of this project.º
+  in the context of this project.
 ---
 
 # Connekt Script Writer
@@ -315,17 +315,42 @@ GET("$host/api/pets/{petId}") {
 
 ### Use Cases
 
-Group related requests with `useCase`. The last expression is the return value.
+#### Когда использовать useCase
+
+- `useCase` применяется **только** если сценарий включает несколько запросов с передачей результата между ними (например, создать ресурс, затем проверить его существование).
+- Один HTTP-запрос (даже с `then`-блоком) **никогда** не оборачивается в `useCase`.
+- Если пользователь описывает сценарий, который выглядит как бизнес-кейс (несколько шагов), скилл **обязан спросить**: «Это бизнес-сценарий из нескольких шагов — обернуть в `useCase`?» — и ждать ответа перед генерацией кода.
+
+Single HTTP request — standalone with `then`, never wrapped in `useCase`:
 
 ```kotlin
-val createdPet by useCase("Create pet") {
-    val created by POST("$host/api/pets") {
+val createdPet by POST("$host/api/pets") {
+    contentType("application/json")
+    body("""{"name": "Rex"}""")
+} then {
+    decode<Pet>()
+}
+```
+
+Group **multiple** related requests with `useCase`. The last expression is the return value.
+
+```kotlin
+val payment by useCase("Place order and pay") {
+    val order by POST("$host/api/orders") {
         contentType("application/json")
-        body("""{"name": "Rex"}""")
+        body("""{"productId": 42, "quantity": 1}""")
     } then {
-        decode<Pet>()
+        decode<Order>()
     }
-    created
+
+    val payment by POST("$host/api/payments") {
+        contentType("application/json")
+        body("""{"orderId": ${order.id}, "amount": ${order.totalPrice}}""")
+    } then {
+        decode<Payment>()
+    }
+
+    payment
 }
 ```
 
@@ -459,6 +484,7 @@ val created by POST("$host/api/pets") {
 val host: String by env
 data class Pet(val id: Long, val name: String, val status: String)
 
+// Многошаговый бизнес-сценарий — оправданное применение useCase
 val result by useCase("Pet CRUD") {
     val pet by POST("$host/api/pets") {
         contentType("application/json")
@@ -642,6 +668,7 @@ GET("$host/api/users/1") then {
 
 ## Important Notes
 
+- **По умолчанию генерируй одиночный запрос — без `useCase`.** `useCase` оправдан только когда сценарий явно содержит несколько шагов с передачей данных между запросами. Один запрос (с `then` или без) никогда не оборачивается в `useCase`. Это правило имеет наивысший приоритет.
 - **The script registers requests — it does not execute them imperatively.** No code between requests at the top level. Assertions and logic belong inside `then` or `useCase` blocks only.
 - **Never interpolate request results into URLs** (`"$host/api/pets/$petId"`) — always use `pathParam("petId", petId)` with a `{petId}` placeholder in the URL.
 - Top-level extension functions on `RequestBuilder` are fine for reusable request configuration (shared headers, auth, etc.).
