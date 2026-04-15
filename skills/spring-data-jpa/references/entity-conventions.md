@@ -1,6 +1,6 @@
 # Detect Entity Conventions
 
-Follow substeps 1.1 → 1.2 → 1.3 → 1.4 → 1.5 → 1.6 in order. Do not skip or reorder them.
+Follow substeps 1.1 → 1.2 → 1.3 → 1.4 → 1.5 in order. Do not skip or reorder them.
 
 ---
 
@@ -47,12 +47,12 @@ Lombok conventions (score separately — only relevant if Lombok is on the class
 
 equals & hashCode conventions (score separately):
 
-- **equals/hashCode style** — check existing `equals`/`hashCode` implementations: is it manual with `HibernateProxy` check (proxy-safe pattern), or generated via Lombok `@EqualsAndHashCode(onlyExplicitlyIncluded = true)` on specific fields (e.g. `id`)? Default: manual with HibernateProxy
+- **equals/hashCode style** — check existing `equals`/`hashCode` implementations: is it manual with `HibernateProxy` check (proxy-safe pattern), or generated via Lombok `@EqualsAndHashCode(onlyExplicitlyIncluded = true)` on specific fields (e.g. `id`)? Default: manual with HibernateProxy. If no `equals`/`hashCode` implementations are found in the project — confidence is high (90), use the default without asking.
 - **`@EqualsAndHashCode` fields** — if Lombok is used, which fields are included via `@EqualsAndHashCode.Include`? Default: `id` only
 
 toString conventions (score separately):
 
-- **toString style** — check existing `toString()` implementations: is it manual (overridden `toString()` method in the class body), or generated via Lombok `@ToString`? Default: manual
+- **toString style** — check existing `toString()` implementations: is it manual (overridden `toString()` method in the class body), or generated via Lombok `@ToString`? Default: manual. If no `toString()` implementations are found in the project — confidence is high (90), use the default without asking.
 - **toString fields** — if manual, which fields are included? Check that no related entity fields are accessed (would trigger lazy loading). Default: all local (non-relation) fields
 - **`@ToString(onlyExplicitlyIncluded = true)`** — if Lombok `@ToString` is used, is `onlyExplicitlyIncluded = true` set with `@ToString.Include` on specific fields? Default: no
 
@@ -224,40 +224,4 @@ Every convention from Step 1.2 must appear in the list, including Lombok and Con
 - toString style: manual — all local fields
 ```
 
-This list is your working contract for all code written in this session — but only after Step 1.6 confirms which conventions to use.
-
----
-
-## Step 1.6: Confirm convention source
-
-Ask the developer which conventions to follow using `AskUserQuestion`:
-
-```json
-{
-  "questions": [
-    {
-      "header": "Conventions",
-      "question": "Which conventions should be used for the new code?",
-      "multiSelect": false,
-      "options": [
-        {
-          "label": "Follow project conventions",
-          "description": "Use the conventions detected in the existing code (as listed in Step 1.5)"
-        },
-        {
-          "label": "Use best practices",
-          "description": "Ignore what's in the project and use the recommended defaults from the skill"
-        }
-      ]
-    }
-  ]
-}
-```
-
-Handle the response as follows:
-
-- **"Follow project conventions"** — proceed with the list as-is from Step 1.5
-- **"Use best practices"** — replace all values in the Step 1.5 list with the defaults defined in Step 1.2
-- **Custom input ("Other")** — the developer wants to adjust specific conventions. Parse their input, apply the requested changes to the Step 1.5 list, output the updated list, then ask Step 1.6 again so they can confirm or adjust further
-
-Repeat Step 1.6 until the developer explicitly selects "Follow project conventions" or "Use best practices" (i.e. not "Other").
+This list is your working contract for all code written in this session.
