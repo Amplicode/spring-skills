@@ -3,9 +3,7 @@ name: spring-explore
 description: >
   Explores a Spring Boot application and builds primary context: tech stack,
   module structure, domain entities, REST endpoints.
-  Use this skill AUTOMATICALLY at the start of any task if project context has not yet
-  been collected in the current conversation — do not wait for an explicit request.
-  Also triggers on explicit requests: "explore project", "describe project", "project overview",
+  Triggers on explicit requests: "explore project", "describe project", "project overview",
   "what is this project", "project structure", "tech stack", "give me context about the project",
   or whenever you need to understand the project before starting any task.
 ---
