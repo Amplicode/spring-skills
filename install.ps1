@@ -31,9 +31,7 @@ Get-ChildItem "$RepoDir\skills" -Directory | ForEach-Object {
         Remove-Item $targetLink -Recurse -Force
     }
 
-    New-Item -ItemType SymbolicLink `
-        -Path $targetLink `
-        -Target $_.FullName | Out-Null
+    cmd /c mklink /J "$targetLink" $_.FullName | Out-Null
 
     Write-Host "  ✔ $skillName"
 }
@@ -55,9 +53,7 @@ if ($qwenExists) {
             Remove-Item $targetLink -Recurse -Force
         }
 
-        New-Item -ItemType SymbolicLink `
-            -Path $targetLink `
-            -Target $_.FullName | Out-Null
+        cmd /c mklink /J "$targetLink" $_.FullName | Out-Null
 
         Write-Host "  ✔ $skillName"
     }
