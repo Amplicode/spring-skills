@@ -2,6 +2,9 @@
 
 set -e
 
+PATH=$($SHELL -l -c 'echo $PATH' 2>/dev/null || echo "$PATH")
+export PATH
+
 REPO_URL="https://github.com/Amplicode/spring-skills.git"
 BASE_DIR="$HOME/.agents"
 REPO_DIR="$BASE_DIR/.amplicode/spring-skills"
