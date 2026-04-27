@@ -1,39 +1,8 @@
 # Amplicode Spring Skills
 
-Best skills for Spring Boot development powered by Amplicode Team.
+Этот репозиторий входит в состав **Spring Agent Toolkit** — набора инструментов Amplicode для AI-кодинга на Spring.
 
-## Installation
-
-```shell
-curl -sSL https://raw.githubusercontent.com/Amplicode/spring-skills/refs/heads/main/install.sh | bash
-```
-
-### Prerequisites
-
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI must be installed and running.
-
-### Install
-
-```shell
-/plugin marketplace add https://github.com/Amplicode/spring-skills.git
-/plugin install spring-tools@spring-tools
-/plugin update spring-tools@spring-tools
-```
-
-Test a plugin locally:
-```shell
-claude --plugin-dir plugins/brainstorm
-```
-
-
-## Updating plugins
-
-The `/plugin` menu has two update paths, and they behave differently:
-
-- `/plugin` → **Marketplaces** → **Update marketplace** — pulls the latest plugin catalog from the repo immediately. This is the reliable way to get updates.
-- `/plugin` → **Installed** → **Update now** — uses a local cache that can be stale for a long time and may not reflect recent changes. Use this as a fallback after updating the marketplace.
-
-To keep plugins current automatically, enable `/plugin` → **Marketplaces** → **Enable auto-update**. This updates the marketplace catalog on each session start.
+Полная инструкция по установке: [Spring Agent Toolkit — подключение к AI-агентам](https://github.com/Amplicode/amplicode-documentation/blob/main/chapters/spring-agent/spring-agent.md)
 
 ## Skills
 
