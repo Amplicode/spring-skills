@@ -10,6 +10,8 @@ BASE_DIR="$HOME/.agents"
 REPO_DIR="$BASE_DIR/.amplicode/spring-skills"
 AGENTS_SKILLS_DIR="$BASE_DIR/skills"
 QWEN_SKILLS_DIR="$HOME/.qwen/skills"
+KILO_SKILLS_DIR="$HOME/.kilocode/skills"
+VEAI_SKILLS_DIR="$HOME/.veai/skills"
 
 echo "== Amplicode Spring Skills Installer =="
 
@@ -25,7 +27,7 @@ else
   git clone "$REPO_URL" "$REPO_DIR"
 fi
 
-# --- Symlinks to ~/.agents/skills/ (Codex, OpenCode, Gemini CLI, KiloCode) ---
+# --- Symlinks to ~/.agents/skills/ (Codex, OpenCode, Gemini CLI) ---
 echo "🔗 Creating/updating symlinks in ~/.agents/skills/..."
 
 for skill_path in "$REPO_DIR/skills/"*; do
@@ -41,7 +43,49 @@ for skill_path in "$REPO_DIR/skills/"*; do
   echo "  ✔ $skill_name"
 done
 
-echo "✅ Skills ready (Codex, OpenCode, Gemini CLI, KiloCode)"
+echo "✅ Skills ready (Codex, OpenCode, Gemini CLI)"
+
+# --- KiloCode: symlinks to ~/.kilocode/skills/ ---
+if [ -d "$HOME/.kilocode" ]; then
+  echo "🔗 Creating/updating symlinks in ~/.kilocode/skills/..."
+  mkdir -p "$KILO_SKILLS_DIR"
+
+  for skill_path in "$REPO_DIR/skills/"*; do
+    [ -d "$skill_path" ] || continue
+    skill_name=$(basename "$skill_path")
+    target_link="$KILO_SKILLS_DIR/$skill_name"
+
+    if [ -L "$target_link" ] || [ -e "$target_link" ]; then
+      rm -rf "$target_link"
+    fi
+
+    ln -s "$skill_path" "$target_link"
+    echo "  ✔ $skill_name"
+  done
+
+  echo "✅ KiloCode skills ready"
+fi
+
+# --- Veai: symlinks to ~/.veai/skills/ ---
+if [ -d "$HOME/.veai" ]; then
+  echo "🔗 Creating/updating symlinks in ~/.veai/skills/..."
+  mkdir -p "$VEAI_SKILLS_DIR"
+
+  for skill_path in "$REPO_DIR/skills/"*; do
+    [ -d "$skill_path" ] || continue
+    skill_name=$(basename "$skill_path")
+    target_link="$VEAI_SKILLS_DIR/$skill_name"
+
+    if [ -L "$target_link" ] || [ -e "$target_link" ]; then
+      rm -rf "$target_link"
+    fi
+
+    ln -s "$skill_path" "$target_link"
+    echo "  ✔ $skill_name"
+  done
+
+  echo "✅ Veai skills ready"
+fi
 
 # --- Qwen Code: symlinks to ~/.qwen/skills/ ---
 if [ -d "$HOME/.qwen" ] || command -v qwen >/dev/null 2>&1; then

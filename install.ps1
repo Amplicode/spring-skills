@@ -5,6 +5,8 @@ $BaseDir = "$HOME\.agents"
 $RepoDir = "$BaseDir\.amplicode\spring-skills"
 $AgentsSkillsDir = "$BaseDir\skills"
 $QwenSkillsDir = "$HOME\.qwen\skills"
+$KiloSkillsDir = "$HOME\.kilocode\skills"
+$VeaiSkillsDir = "$HOME\.veai\skills"
 
 Write-Host "== Amplicode Spring Skills Installer =="
 
@@ -20,7 +22,7 @@ if (Test-Path "$RepoDir\.git") {
     git clone $RepoUrl $RepoDir
 }
 
-# --- Symlinks to ~/.agents/skills/ (Codex, OpenCode, Gemini CLI, KiloCode) ---
+# --- Symlinks to ~/.agents/skills/ (Codex, OpenCode, Gemini CLI) ---
 Write-Host "🔗 Creating/updating symlinks in ~/.agents/skills/..."
 
 Get-ChildItem "$RepoDir\skills" -Directory | ForEach-Object {
@@ -36,7 +38,49 @@ Get-ChildItem "$RepoDir\skills" -Directory | ForEach-Object {
     Write-Host "  ✔ $skillName"
 }
 
-Write-Host "✅ Skills ready (Codex, OpenCode, Gemini CLI, KiloCode)"
+Write-Host "✅ Skills ready (Codex, OpenCode, Gemini CLI)"
+
+# --- KiloCode: symlinks to ~/.kilocode/skills/ ---
+if (Test-Path "$HOME\.kilocode") {
+    Write-Host "🔗 Creating/updating symlinks in ~/.kilocode/skills/..."
+    New-Item -ItemType Directory -Force -Path "$KiloSkillsDir" | Out-Null
+
+    Get-ChildItem "$RepoDir\skills" -Directory | ForEach-Object {
+        $skillName = $_.Name
+        $targetLink = Join-Path $KiloSkillsDir $skillName
+
+        if (Test-Path $targetLink) {
+            Remove-Item $targetLink -Recurse -Force
+        }
+
+        cmd /c mklink /J "$targetLink" $_.FullName | Out-Null
+
+        Write-Host "  ✔ $skillName"
+    }
+
+    Write-Host "✅ KiloCode skills ready"
+}
+
+# --- Veai: symlinks to ~/.veai/skills/ ---
+if (Test-Path "$HOME\.veai") {
+    Write-Host "🔗 Creating/updating symlinks in ~/.veai/skills/..."
+    New-Item -ItemType Directory -Force -Path "$VeaiSkillsDir" | Out-Null
+
+    Get-ChildItem "$RepoDir\skills" -Directory | ForEach-Object {
+        $skillName = $_.Name
+        $targetLink = Join-Path $VeaiSkillsDir $skillName
+
+        if (Test-Path $targetLink) {
+            Remove-Item $targetLink -Recurse -Force
+        }
+
+        cmd /c mklink /J "$targetLink" $_.FullName | Out-Null
+
+        Write-Host "  ✔ $skillName"
+    }
+
+    Write-Host "✅ Veai skills ready"
+}
 
 # --- Qwen Code: symlinks to ~/.qwen/skills/ ---
 $qwenExists = (Test-Path "$HOME\.qwen") -or (Get-Command qwen -ErrorAction SilentlyContinue)
