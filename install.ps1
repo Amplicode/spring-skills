@@ -120,4 +120,16 @@ if ($claudeExists) {
     Write-Host "⚠ Claude CLI not found, skipping Claude Code setup"
 }
 
+# --- GitHub Copilot CLI: marketplace plugin ---
+$copilotExists = Get-Command copilot -ErrorAction SilentlyContinue
+
+if ($copilotExists) {
+    Write-Host "🤖 Copilot CLI found, installing plugin..."
+
+    try { copilot plugin marketplace add $RepoUrl } catch {}
+    try { copilot plugin install spring-tools@spring-tools } catch {}
+
+    Write-Host "✅ Copilot plugin ready"
+}
+
 Write-Host "🎉 Done"

@@ -1,0 +1,11 @@
+{
+  "name": "amplicode-spring-skills",
+  "description": "Best skills for Spring Boot development powered by Amplicode Team",
+  "version": "0.9.3",
+  "author": {
+    "name": "Haulmont"
+  },
+  "license": "MIT",
+  "keywords": ["spring", "spring-boot", "java", "kotlin", "debugging", "http"],
+  "skills": ["skills/"]
+}

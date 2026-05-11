@@ -121,4 +121,14 @@ else
   echo "⚠ Claude CLI not found, skipping Claude Code setup"
 fi
 
+# --- GitHub Copilot CLI: marketplace plugin ---
+if command -v copilot >/dev/null 2>&1; then
+  echo "🤖 Copilot CLI found, installing plugin..."
+
+  copilot plugin marketplace add "$REPO_URL" || true
+  copilot plugin install spring-tools@spring-tools || true
+
+  echo "✅ Copilot plugin ready"
+fi
+
 echo "🎉 Done"
