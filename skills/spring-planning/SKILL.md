@@ -231,21 +231,29 @@ Example (NOTICE: Files block + tests as separate checklist items):
 - third-party service integrations to verify
 ```
 
-## step 2.1: analyze plan for domain/JPA work
+## step 2.1: analyze plan for domain persistence work
 
-after writing the plan file, scan the plan for tasks that involve JPA entities. also check whether the project uses JPA.
+after writing the plan file, scan it for tasks that involve domain entities. if there are none — skip this step entirely.
 
-**if the plan touches domain entities AND the project is a JPA project:**
+if there are entity-related tasks, detect the persistence stack via `list_module_dependencies`:
 
-1. activate the `spring-data-jpa` skill
+| Dependency detected                                            | Stack | Skill to activate  |
+|----------------------------------------------------------------|-------|--------------------|
+| `spring-boot-starter-data-jpa` / `hibernate-core`              | JPA   | `spring-data-jpa`  |
+| `spring-boot-starter-data-jdbc` / `spring-data-jdbc`           | JDBC  | `spring-data-jdbc` |
+| neither                                                         | none  | skip this step     |
+
+once the stack is resolved (JPA or JDBC):
+
+1. activate the matching skill
 2. follow the skill's environment setup steps
-3. ask the user focused questions about the JPA-specific decisions the plan implies — one at a time using AskUserQuestion.
+3. ask the user focused questions about the stack-specific decisions the plan implies — one at a time using AskUserQuestion (e.g. for JPA: fetch type, cascade; for JDBC: aggregate boundaries, `@MappedCollection` vs `AggregateReference`)
 4. after all answers are collected, revise the plan:
-    - add JPA-specific notes to relevant tasks (e.g. fetch type, cascade, index hints)
-    - add a reminder in each entity task: "> **JPA skill required (spring-data-jpa).** Before writing any entity code: activate the skill and verify the implementation follows its rules. For any deviation — ask the developer before continuing."
+    - add stack-specific notes to relevant tasks
+    - add a reminder in each entity task: "> **<STACK> skill required (<skill>).** Before writing any entity code: activate the skill and verify the implementation follows its rules. For any deviation — ask the developer before continuing."
     - add the corresponding DB migration task if not already present
 
-**if the plan does NOT touch domain entities or the project is not a JPA project:** skip this step entirely.
+**if the plan does NOT touch domain entities or the project uses neither JPA nor JDBC:** skip this step entirely.
 
 ## step 3: next steps
 
