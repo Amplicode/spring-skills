@@ -68,13 +68,14 @@ Using this goal, go through each exploration path below and explicitly decide: *
 
 **Project structure**
 - **Fetch project summary** — include if the tech stack, Spring Boot version, or module structure are needed. Skip if the task is narrowly scoped to specific classes.
+- **Detect persistence stack** — include if any entity-touching path below is selected AND the stack (JPA vs JDBC) is not yet known from the conversation. Call `list_module_dependencies`: dependency on `spring-boot-starter-data-jpa` / `hibernate` → JPA; `spring-boot-starter-data-jdbc` / `spring-data-jdbc` → JDBC; neither → no supported persistence layer, skip entity-touching paths.
 - **List domain entities** — include ONLY if the domain area is completely unknown and you cannot predict which entities are involved. If entities are already named in the request or predictable from context — skip. Do NOT use to get entity structure or resolve FQNs.
 - **List REST endpoints** — include only if you need to check what already exists to avoid duplication or understand conventions. Skip if the request fully defines all endpoints from scratch.
 
 **Domain model**
-- **Get entity description** — include if entity fields or annotations are needed. Apply only to predicted entities, not all entities. See [`references/entity-description.md`](references/entity-description.md).
-- **Get deep model from entity** — include if relationships across multiple entities need to be traversed (e.g. nested resources, cascades). See [`references/deep-model-based-on-jpa.md`](references/deep-model-based-on-jpa.md).
-- **Get DDD model from entity** — include if aggregate boundaries matter (e.g. URL design, cascade planning, DTO shaping). See [`references/ddd-model-based-on-jpa.md`](references/ddd-model-based-on-jpa.md).
+- **Get entity description** — include if entity fields or annotations are needed. Apply only to predicted entities, not all entities. Route by stack: JPA → `get_entity_details`, see [`references/entity-description.md`](references/entity-description.md); JDBC → `get_jdbc_entity_details`, see [`references/entity-description-jdbc.md`](references/entity-description-jdbc.md).
+- **Get deep model from entity** — include if relationships across multiple entities need to be traversed (e.g. nested resources, cascades). **JPA only** — for JDBC `get_jdbc_entity_details` already returns the full owned-children tree (`aggregates`) and inverse links (`referencedBy`); use the DDD path below instead. See [`references/deep-model-based-on-jpa.md`](references/deep-model-based-on-jpa.md).
+- **Get DDD model from entity** — include if aggregate boundaries matter (e.g. URL design, cascade planning, DTO shaping). JPA: follow [`references/ddd-model-based-on-jpa.md`](references/ddd-model-based-on-jpa.md). JDBC: call `get_jdbc_entity_details` and read `aggregateRootFqn`, `aggregates`, `referencedBy` directly — Spring Data JDBC enforces aggregate boundaries at the framework level.
 
 **Persistence**
 - **Get entity repositories** — include if repositories for predicted entities are unknown or need to be verified. See [`references/entity-repositories.md`](references/entity-repositories.md).
@@ -98,6 +99,7 @@ Write out the evaluation explicitly, then produce the final plan from included p
 ```
 ### Path evaluation:
 - Fetch project summary: INCLUDE — need Spring Boot version and module structure
+- Detect persistence stack: INCLUDE — entity-touching paths selected and stack unknown from conversation
 - List domain entities: SKIP — Order, Customer, OrderItem, Product are predictable from the request
 - List REST endpoints: INCLUDE — need to check if an orders endpoint already exists
 - Get entity description: INCLUDE — need Order, OrderItem, Product fields for response DTO design
@@ -112,11 +114,12 @@ Write out the evaluation explicitly, then produce the final plan from included p
 
 ### Exploration plan:
 1. Fetch project summary
-2. List REST endpoints (filter to order-related controllers)
-3. Get entity description for Order, OrderItem, Product
-4. Get entity repositories for Order
-5. Get entity mappers for Order
-6. Get entity DTOs for Order
+2. Detect persistence stack
+3. List REST endpoints (filter to order-related controllers)
+4. Get entity description for Order, OrderItem, Product
+5. Get entity repositories for Order
+6. Get entity mappers for Order
+7. Get entity DTOs for Order
 ```
 
 ---
@@ -133,7 +136,8 @@ After loading, proceed directly to step 3 — **do NOT search files, glob, or ex
 
 | Selected path | Reference to load |
 |---|---|
-| Get entity description | [`references/entity-description.md`](references/entity-description.md) |
+| Get entity description (JPA) | [`references/entity-description.md`](references/entity-description.md) |
+| Get entity description (JDBC) | [`references/entity-description-jdbc.md`](references/entity-description-jdbc.md) |
 | Get deep model from entity | [`references/deep-model-based-on-jpa.md`](references/deep-model-based-on-jpa.md) |
 | Get DDD model from entity | [`references/ddd-model-based-on-jpa.md`](references/ddd-model-based-on-jpa.md) |
 | Get entity repositories | [`references/entity-repositories.md`](references/entity-repositories.md) |
@@ -207,7 +211,8 @@ Structure:
 ```
 ### Exploration Report
 
-**Stack:** Java 21 · Spring Boot 3.x · JPA · Maven
+**Stack:** Java 21 · Spring Boot 3.x · Maven
+**Persistence:** JPA   <!-- JPA · JDBC · none — required when any entity-touching path ran -->
 
 **Domain model:**
 - Order (id, status, totalAmount) → has many OrderItem → references Product
