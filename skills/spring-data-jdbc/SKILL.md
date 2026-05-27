@@ -18,9 +18,19 @@ Do not refuse a task because one of these primitives is missing. Substitute the 
 
 ---
 
+# Preflight: Amplicode MCP
+
+This skill is part of the **Spring Agent Toolkit** and is designed to work with the **Amplicode MCP server** (provided by the Amplicode IntelliJ plugin). Before doing anything else, check your tool list for any Amplicode MCP tool — they are exposed under the `amplicode` MCP server (e.g. `get_jdbc_entity_details`, `list_all_domain_entities`, `list_entity_repositories`); harnesses that flatten MCP tools into the tool list use the `mcp__amplicode__` prefix on the same names.
+
+- **If at least one Amplicode tool is available** — MCP is connected. Proceed with the skill below.
+- **If none are available** — stop and invoke the **`amplicode-install`** skill (bundled with the Spring Agent Toolkit). It installs the Amplicode plugin and walks the user through the **«Настроить Spring Agent»** welcome-screen button + MCP-client restart. After it completes, the MCP tools become available — resume this skill.
+- If `amplicode-install` is not registered in your skill list **or** the user declines to install (e.g. they are running in a harness without MCP support such as a CI sandbox), continue with the file-read fallbacks described in the next section so the task is not blocked.
+
+---
+
 # MCP availability and fallbacks
 
-This skill prefers the amplicode MCP tools (`get_jdbc_entity_details`, `list_all_domain_entities`, `list_entity_repositories`) because they return resolved, project-wide answers in one call. If the amplicode MCP server is unreachable (connection error, tool not registered, harness without MCP support), do not refuse the task — fall back to direct file reads / grep:
+This skill prefers the amplicode MCP tools (`get_jdbc_entity_details`, `list_all_domain_entities`, `list_entity_repositories`) because they return resolved, project-wide answers in one call. If the amplicode MCP server is unreachable (connection error, tool not registered, harness without MCP support) and the user has chosen not to install the plugin via the **Preflight** above, do not refuse the task — fall back to direct file reads / grep:
 
 This project is **Kotlin-first** (Kotlin 2.2.20 primary, Java for some modules) — every fallback grep must hit both `*.kt` and `*.java`. Do not pass `-t java` to `rg`; either omit the type filter or use `-t kotlin -t java`.
 

@@ -5,6 +5,16 @@ description: >
   Use this skill when a CRUD controller needs to be created, either standalone or as part of a larger task.
 ---
 
+# Preflight: Amplicode MCP
+
+This skill is part of the **Spring Agent Toolkit** and is designed to work with the **Amplicode MCP server** (provided by the Amplicode IntelliJ plugin). Before doing anything else, check your tool list for any Amplicode MCP tool — they are exposed under the `amplicode` MCP server (e.g. `get_project_summary`, `list_module_dependencies`, `get_entity_details`); harnesses that flatten MCP tools into the tool list use the `mcp__amplicode__` prefix on the same names.
+
+- **If at least one Amplicode tool is available** — MCP is connected. Proceed with the skill below.
+- **If none are available** — stop and invoke the **`amplicode-install`** skill (bundled with the Spring Agent Toolkit). It installs the Amplicode plugin and walks the user through the **«Настроить Spring Agent»** welcome-screen button + MCP-client restart. After it completes, the MCP tools become available — resume this skill.
+- If `amplicode-install` is not registered in your skill list, tell the user (in their language): *"This skill needs the Amplicode IntelliJ plugin and its MCP server. Install it from https://amplicode.ru/marketplace into IntelliJ IDEA Ultimate/Community or GigaIDE, open any project, click «Настроить Spring Agent» on the Amplicode welcome screen, then restart your MCP client."*
+
+---
+
 # CRUD REST Controller
 
 Generates a `@RestController` class with standard CRUD endpoints for an entity,
