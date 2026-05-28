@@ -2,7 +2,7 @@
 
 Этот репозиторий входит в состав **Spring Agent Toolkit** — набора инструментов Amplicode для AI-кодинга на Spring.
 
-Полная инструкция по установке: [Spring Agent Toolkit — подключение к AI-агентам](https://github.com/Amplicode/amplicode-documentation/blob/main/chapters/spring-agent/spring-agent.md)
+Полная инструкция по установке: [Spring Agent Toolkit — подключение к AI-агентам](https://amplicode.ru/documentation/spring-agent/)
 
 ## Skills
 
