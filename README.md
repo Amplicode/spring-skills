@@ -8,7 +8,6 @@
 
 | Skill | Description | Status |
 |-------|-------------|--------|
-| [`amplicode-install`](skills/amplicode-install/SKILL.md) | Installs the Amplicode IntelliJ plugin into IntelliJ IDEA (Ultimate/Community) and GigaIDE — invoked when other skills detect that the Amplicode MCP server is not connected | Available |
 | [`spring-explore`](skills/spring-explore/SKILL.md) | Automatically explores a Spring Boot application and builds project context: tech stack, module structure, domain entities, REST endpoints | Available |
 | [`spring-data-jpa`](skills/spring-data-jpa/SKILL.md) | Rules and guidelines for working with Spring Data JPA — creating/modifying entities, repositories, projections, and transactional code | Available |
 | [`spring-data-jdbc`](skills/spring-data-jdbc/SKILL.md) | Rules and guidelines for working with Spring Data JDBC — creating/modifying entities, aggregates, `AggregateReference` links, `@MappedCollection` associations, and JDBC repositories | Available |
