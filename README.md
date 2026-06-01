@@ -2,7 +2,35 @@
 
 Этот репозиторий входит в состав **Spring Agent Toolkit** — набора инструментов Amplicode для AI-кодинга на Spring.
 
-Полная инструкция по установке: [Spring Agent Toolkit — подключение к AI-агентам](https://amplicode.ru/documentation/spring-agent/)
+## Установка
+
+Самый простой способ установить Spring Skills — через CLI `npx skills`.
+
+Установить все skills глобально во все обнаруженные AI-агенты:
+
+```bash
+npx skills add Amplicode/spring-skills -g
+```
+
+Установить skills только для конкретных агентов, например Claude Code, Codex и Gemini CLI:
+
+```bash
+npx skills add Amplicode/spring-skills -g -a claude-code -a codex -a gemini-cli
+```
+
+Полезные команды:
+
+```bash
+# посмотреть список skills в репозитории, не устанавливая
+npx skills add Amplicode/spring-skills --list
+
+# обновить установленные skills до последних версий
+npx skills update
+```
+
+Без флага `-g` skills устанавливаются в текущий проект, с флагом `-g` — в домашние каталоги агентов.
+
+Полная инструкция: [Spring Agent Toolkit — подключение к AI-агентам](https://amplicode.ru/documentation/spring-agent/)
 
 ## Skills
 
