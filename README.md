@@ -45,4 +45,5 @@ npx skills update
 | [`dto-creator`](skills/dto-creator/SKILL.md) | Creates a DTO (Data Transfer Object) class for an entity (Java class, record, Kotlin data class, with Lombok support) | In development |
 | [`mapper-creator`](skills/mapper-creator/SKILL.md) | Creates a mapper between an entity and a DTO (MapStruct or custom converter) | In development |
 | [`spring-security-configuration`](skills/spring-security-configuration/SKILL.md) | Creates a Spring Security configuration class with authentication, authorization, and HTTP protection setup | In development |
+| [`kafka-configuration`](skills/kafka-configuration/SKILL.md) | Configures Spring Boot's Kafka | Available |
 | [`java-debug`](skills/java-debug/SKILL.md) | Debugging applications via IntelliJ debugger: breakpoints, debug sessions, stepping, evaluating expressions, inspecting runtime state | In development |
