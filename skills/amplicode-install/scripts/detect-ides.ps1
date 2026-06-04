@@ -6,6 +6,83 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $ErrorActionPreference = 'Continue'
 
+# ---------- bounded helpers ----------
+
+# Runs a self-contained scriptblock with a wall-clock timeout.
+# The scriptblock runs in a separate runspace and does not share caller variables.
+function Invoke-WithTimeout {
+    param(
+        [Parameter(Mandatory)][scriptblock]$ScriptBlock,
+        [int]$TimeoutMs = 5000
+    )
+    $ps = [System.Management.Automation.PowerShell]::Create()
+    $null = $ps.AddScript($ScriptBlock.ToString())
+    $async = $ps.BeginInvoke()
+    if ($async.AsyncWaitHandle.WaitOne($TimeoutMs)) {
+        try {
+            return ,($ps.EndInvoke($async))
+        } finally {
+            $ps.Dispose()
+        }
+    }
+    # Clean up in the background so detection can continue after timeout.
+    [System.Threading.ThreadPool]::QueueUserWorkItem({
+        param($p)
+        try { $p.Stop() } catch {}
+        try { $p.Dispose() } catch {}
+    }, $ps) | Out-Null
+    throw [System.TimeoutException]::new("Operation timed out after $TimeoutMs ms")
+}
+
+# Finds product-info.json files with bounded depth, time, and directory count.
+# Reparse points are skipped.
+function Find-ProductInfoFiles {
+    param(
+        [string]$Root,
+        [int]$MaxDepth = 4,
+        [int]$TimeoutMs = 8000,
+        [int]$MaxDirs = 20000
+    )
+    $results = New-Object System.Collections.Generic.List[string]
+    if ([string]::IsNullOrEmpty($Root) -or -not (Test-Path -LiteralPath $Root)) {
+        return $results
+    }
+
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    $dirCount = 0
+    $queue = New-Object System.Collections.Generic.Queue[object]
+    $queue.Enqueue([pscustomobject]@{ Path = $Root; Depth = 0 })
+
+    while ($queue.Count -gt 0) {
+        if ($sw.ElapsedMilliseconds -gt $TimeoutMs) { break }
+        if ($dirCount -ge $MaxDirs) { break }
+
+        $node = $queue.Dequeue()
+        $dirCount++
+
+        $pi = Join-Path $node.Path 'product-info.json'
+        if (Test-Path -LiteralPath $pi -PathType Leaf) {
+            $results.Add($pi)
+        }
+
+        if ($node.Depth -ge $MaxDepth) { continue }
+
+        $children = $null
+        try {
+            $children = Get-ChildItem -LiteralPath $node.Path -Directory -Force -ErrorAction SilentlyContinue
+        } catch {
+            $children = $null
+        }
+        if (-not $children) { continue }
+
+        foreach ($child in $children) {
+            if ($child.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { continue }
+            $queue.Enqueue([pscustomobject]@{ Path = $child.FullName; Depth = $node.Depth + 1 })
+        }
+    }
+    return $results
+}
+
 # ---------- search roots ----------
 $searchRoots = @()
 if ($env:LOCALAPPDATA) {
@@ -19,56 +96,85 @@ $searchRoots += "C:\Program Files (x86)\JetBrains"
 $piPaths = New-Object System.Collections.Generic.HashSet[string]
 foreach ($root in $searchRoots) {
     if (-not (Test-Path -LiteralPath $root)) { continue }
-    $found = Get-ChildItem -Path $root -Filter 'product-info.json' -Recurse -Depth 6 -ErrorAction SilentlyContinue
-    foreach ($f in $found) {
-        $null = $piPaths.Add($f.FullName)
+    foreach ($f in (Find-ProductInfoFiles -Root $root -MaxDepth 6 -TimeoutMs 10000)) {
+        $null = $piPaths.Add($f)
     }
 }
 
-# Fallback: scan all fixed drives at top level to catch custom install paths.
+# Fallback: inspect top-level directories on fixed drives.
+# Recursion is limited to IDE-looking directories.
 $skipTop = @('Windows', 'Windows.old', '$Recycle.Bin', 'System Volume Information',
              'PerfLogs', 'Recovery', 'Boot', 'EFI', 'MSOCache', 'OneDriveTemp')
-$containerNames = @('Program Files', 'Program Files (x86)', 'Programs', 'Apps')
 $ideNamePattern = '(?i)^(idea|intellij|giga|jetbrains|amplicode|toolbox)'
+
+# Inspect standard Program Files locations for IDEs installed under vendor folders.
+# Other drives are handled by the top-level fallback below.
+$programFilesRoots = @('C:\Program Files', 'C:\Program Files (x86)')
+foreach ($pfRoot in $programFilesRoots) {
+    if (-not (Test-Path -LiteralPath $pfRoot)) { continue }
+    $children = $null
+    try {
+        $children = Get-ChildItem -LiteralPath $pfRoot -Directory -Force -ErrorAction SilentlyContinue
+    } catch { $children = $null }
+    if (-not $children) { continue }
+    foreach ($td in $children) {
+        if ($td.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { continue }
+
+        $directPi = Join-Path $td.FullName 'product-info.json'
+        if (Test-Path -LiteralPath $directPi -PathType Leaf) {
+            $null = $piPaths.Add($directPi)
+        }
+        if ($td.Name -match $ideNamePattern) {
+            foreach ($f in (Find-ProductInfoFiles -Root $td.FullName -MaxDepth 4 -TimeoutMs 8000)) {
+                $null = $piPaths.Add($f)
+            }
+        }
+    }
+}
+
+# Enumerate fixed drives with a bounded system query and a filesystem fallback.
 try {
-    $fixedDrives = Get-CimInstance -ClassName Win32_LogicalDisk -Filter 'DriveType=3' -ErrorAction Stop |
-        ForEach-Object { "$($_.DeviceID)\" }
+    $fixedDrives = Invoke-WithTimeout -TimeoutMs 5000 -ScriptBlock {
+        Get-CimInstance -ClassName Win32_LogicalDisk -Filter 'DriveType=3' -OperationTimeoutSec 4 -ErrorAction Stop |
+            ForEach-Object { "$($_.DeviceID)\" }
+    }
 } catch {
+    $fixedDrives = $null
+}
+if (-not $fixedDrives) {
     $fixedDrives = Get-PSDrive -PSProvider FileSystem -ErrorAction SilentlyContinue |
         Where-Object { $_.Root -match '^[A-Z]:\\$' } |
         ForEach-Object { $_.Root }
 }
+
+# Global budget for the whole fallback scan.
+$fallbackBudget = [System.Diagnostics.Stopwatch]::StartNew()
 foreach ($drive in $fixedDrives) {
+    if ($fallbackBudget.ElapsedMilliseconds -gt 30000) { break }
     if (-not (Test-Path -LiteralPath $drive)) { continue }
-    $topDirs = Get-ChildItem -LiteralPath $drive -Directory -Force -ErrorAction SilentlyContinue
+
+    $topDirs = $null
+    try {
+        $topDirs = Get-ChildItem -LiteralPath $drive -Directory -Force -ErrorAction SilentlyContinue
+    } catch {
+        $topDirs = $null
+    }
+    if (-not $topDirs) { continue }
+
     foreach ($td in $topDirs) {
         if ($skipTop -contains $td.Name) { continue }
         if ($td.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { continue }
 
-        # Folders to inspect with the IDE-name filter: $td itself, plus its immediate
-        # subdirectories if $td is a Program Files-style container.
-        $candidates = New-Object System.Collections.Generic.List[object]
-        $candidates.Add($td)
-        if ($containerNames -contains $td.Name) {
-            $sub = Get-ChildItem -LiteralPath $td.FullName -Directory -Force -ErrorAction SilentlyContinue
-            foreach ($s in $sub) { $candidates.Add($s) }
+        # Fast path: product-info.json directly inside this top-level dir.
+        $directPi = Join-Path $td.FullName 'product-info.json'
+        if (Test-Path -LiteralPath $directPi -PathType Leaf) {
+            $null = $piPaths.Add($directPi)
         }
 
-        foreach ($cf in $candidates) {
-            if ($cf.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { continue }
-
-            # Fast path: product-info.json directly inside this folder.
-            $directPi = Join-Path $cf.FullName 'product-info.json'
-            if (Test-Path -LiteralPath $directPi -PathType Leaf) {
-                $null = $piPaths.Add($directPi)
-            }
-
-            # Deep path: only if the folder name suggests an IDE/JetBrains install.
-            if ($cf.Name -match $ideNamePattern) {
-                $found = Get-ChildItem -LiteralPath $cf.FullName -Filter 'product-info.json' -Recurse -Depth 4 -ErrorAction SilentlyContinue
-                foreach ($f in $found) {
-                    $null = $piPaths.Add($f.FullName)
-                }
+        # Bounded recursion only for IDE-looking directories.
+        if ($td.Name -match $ideNamePattern) {
+            foreach ($f in (Find-ProductInfoFiles -Root $td.FullName -MaxDepth 4 -TimeoutMs 8000)) {
+                $null = $piPaths.Add($f)
             }
         }
     }
@@ -106,46 +212,56 @@ function Test-AmplicodeInstalled {
     return [bool]$hits
 }
 
+# Vendor namespace is used in per-user IntelliJ Platform directories.
+# Older builds may omit it and use the JetBrains namespace.
 function Get-PluginsDir {
-    param([string]$dataDirName)
+    param([string]$dataDirName, [string]$vendor = 'JetBrains')
     if (-not $env:APPDATA) { return $null }
-    return Join-Path $env:APPDATA "JetBrains\$dataDirName\plugins"
+    return Join-Path $env:APPDATA "$vendor\$dataDirName\plugins"
 }
 
 function Get-SystemDir {
-    param([string]$dataDirName)
+    param([string]$dataDirName, [string]$vendor = 'JetBrains')
     if (-not $env:LOCALAPPDATA) { return $null }
-    return Join-Path $env:LOCALAPPDATA "JetBrains\$dataDirName"
+    return Join-Path $env:LOCALAPPDATA "$vendor\$dataDirName"
 }
 
-# Returns $true if the current PowerShell process is a descendant of $targetPid
-# (walks ParentProcessId chain up from $PID). Used to detect the "self-host" case:
-# the agent running in a JetBrains terminal inside the very IDE we are about to
-# restart — killing it would kill the agent before installPlugins runs.
+# Returns true when this script is running under the target IDE process.
+# Uses one bounded process snapshot, then walks parent PIDs in memory.
 function Test-DescendantOf {
     param([int]$targetPid)
     if ($targetPid -le 0) { return $false }
+
+    $parentOf = @{}
+    try {
+        $all = Invoke-WithTimeout -TimeoutMs 5000 -ScriptBlock {
+            Get-CimInstance -ClassName Win32_Process -OperationTimeoutSec 4 -ErrorAction Stop |
+                Select-Object ProcessId, ParentProcessId
+        }
+    } catch {
+        # If the process snapshot is unavailable, keep detection moving.
+        return $false
+    }
+    if (-not $all) { return $false }
+    foreach ($p in $all) {
+        $parentOf[[int]$p.ProcessId] = [int]$p.ParentProcessId
+    }
+
     $cur = $PID
     $depth = 0
     while ($cur -and $cur -ne 0 -and $depth -lt 50) {
         if ($cur -eq $targetPid) { return $true }
-        try {
-            $proc = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$cur" -ErrorAction Stop
-            if (-not $proc) { return $false }
-            $cur = [int]$proc.ParentProcessId
-        } catch {
-            return $false
-        }
+        if (-not $parentOf.ContainsKey($cur)) { return $false }
+        $cur = $parentOf[$cur]
         $depth++
     }
     return $false
 }
 
-# If IDEA wrote a .pid file and the PID points at a live process, returns the PID.
-# Otherwise returns $null. Mirrors the Unix detect-ides.sh implementation.
+# Returns the IDE PID from its .pid file when the process is still running.
 function Get-IdeRunningPid {
-    param([string]$dataDirName)
-    $systemDir = Get-SystemDir $dataDirName
+    param([string]$dataDirName, [string]$vendor = 'JetBrains')
+    $systemDir = Get-SystemDir $dataDirName $vendor
     if (-not $systemDir) { return $null }
     $pidFile = Join-Path $systemDir '.pid'
     if (-not (Test-Path -LiteralPath $pidFile)) { return $null }
@@ -175,6 +291,8 @@ foreach ($pi in $piPaths) {
     $productName = $info.name
     $version = $info.version
     $dataDirName = $info.dataDirectoryName
+    $productVendor = $info.productVendor
+    if (-not $productVendor) { $productVendor = 'JetBrains' }
 
     if (-not $productCode -or -not $dataDirName) { continue }
     if (-not (Test-Target $productCode $productName)) { continue }
@@ -182,10 +300,11 @@ foreach ($pi in $piPaths) {
     $exePath = Find-Launcher $pi
     if (-not $exePath) { continue }
 
-    $pluginsDir = Get-PluginsDir $dataDirName
+    $pluginsDir = Get-PluginsDir $dataDirName $productVendor
     $amplicodeInstalled = if ($pluginsDir) { Test-AmplicodeInstalled $pluginsDir } else { $false }
-    $runningPid = Get-IdeRunningPid $dataDirName
+    $runningPid = Get-IdeRunningPid $dataDirName $productVendor
     $running = [bool]$runningPid
+    # Check the process tree only when the IDE process is running.
     $hostsCurrentProcess = if ($runningPid) { Test-DescendantOf $runningPid } else { $false }
 
     $edition = switch ($productCode) {
