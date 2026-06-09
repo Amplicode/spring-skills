@@ -51,13 +51,13 @@ If yes:
 Client settings:
 1. **Client name?** []
 2. **Client ID?** []
-3. **Client Secret?** []
-4. **Encode secret (bcrypt)?** [yes]
-5. **Authentication methods?** [client_secret_basic] (comma-separated)
-6. **Grant types?** [authorization_code] (comma-separated)
-7. **Redirect URIs?** [] (comma-separated)
-8. **Scopes?** [openid] (comma-separated)
+3. **Authentication methods?** [client_secret_basic] (comma-separated)
+4. **Grant types?** [authorization_code] (comma-separated)
+5. **Redirect URIs?** [] (comma-separated)
+6. **Scopes?** [openid] (comma-separated)
 ```
+
+**Do NOT ask the user for the client secret.** The secret value must not enter the conversation. The skill emits `${AUTHSERVER_{CLIENT_NAME_UPPER}_CLIENT_SECRET}` in `application.properties` as a placeholder — see `_properties/authorization-server/properties.md` → "Client secret handling". After generation, tell the user the exact env var name and instruct them to set it (the encoded value with `{bcrypt}`/`{noop}` prefix) via shell `export`, IDE run config, or deployment secret store.
 
 ### Client Advanced Questions (batch, skip if "all defaults")
 
@@ -98,5 +98,5 @@ Token settings for client {clientName}:
 - **NO `@Import` annotation** — Spring Boot autoconfigures the Authorization Server via the `spring-boot-starter-security-oauth2-authorization-server` dependency. Do NOT add `@Import(OAuth2AuthorizationServerConfiguration.class)`.
 - The Java configuration is identical to the Custom variant — just common DSL fragments. All Authorization Server-specific settings go through `application.properties`.
 - Endpoint properties are only written when different from defaults.
-- Client secret uses `{bcrypt}` prefix when "Encode" checkbox is selected, `{noop}` otherwise.
+- Client secret is emitted only as an env var placeholder `${AUTHSERVER_{CLIENT_NAME_UPPER}_CLIENT_SECRET}`. The encoded-secret prefix (`{bcrypt}`/`{noop}`) belongs to the env var value, not to the property file.
 - Token TTL properties are only written when different from defaults (auth code: 300s, access: 300s, device: 300s, refresh: 3600s).

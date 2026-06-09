@@ -38,12 +38,13 @@ OAuth2/OIDC provider?
 ```
 Provider settings {providerName}:
 1. **Client ID?** []
-2. **Client Secret?** []
-3. **Issuer URI?** [] (only for non-predefined providers)
+2. **Issuer URI?** [] (only for non-predefined providers)
 ```
 
-For predefined providers (Google, GitHub, Facebook, Okta), only client-id and client-secret are needed.
+For predefined providers (Google, GitHub, Facebook, Okta), only client-id is asked.
 For custom/non-predefined (Keycloak, AWS Cognito, Custom), also ask for provider URIs.
+
+**Do NOT ask the user for the client secret.** The secret value must not enter the conversation. The skill emits `${OAUTH_{PREFIX_UPPER}_CLIENT_SECRET}` in `application.properties` as a placeholder — see `_properties/oauth/properties.md` → "Client secret handling". After generation, tell the user the exact env var name and instruct them to set it locally (shell `export`, IDE run config) or via their deployment's secret store.
 
 ### Post-Logout Redirect URI Question (only if isJwt=false)
 

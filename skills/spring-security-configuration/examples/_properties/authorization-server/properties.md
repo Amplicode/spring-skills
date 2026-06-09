@@ -21,7 +21,7 @@ spring.security.oauth2.authorizationserver.client.{clientName}.require-proof-key
 spring.security.oauth2.authorizationserver.client.{clientName}.require-authorization-consent={bool}
 spring.security.oauth2.authorizationserver.client.{clientName}.token-endpoint-authentication-signing-algorithm={algorithm}
 spring.security.oauth2.authorizationserver.client.{clientName}.registration.client-id={clientId}
-spring.security.oauth2.authorizationserver.client.{clientName}.registration.client-secret={encodedSecret}
+spring.security.oauth2.authorizationserver.client.{clientName}.registration.client-secret=${AUTHSERVER_{CLIENT_NAME_UPPER}_CLIENT_SECRET}
 spring.security.oauth2.authorizationserver.client.{clientName}.registration.client-authentication-methods={methods}
 spring.security.oauth2.authorizationserver.client.{clientName}.registration.authorization-grant-types={types}
 spring.security.oauth2.authorizationserver.client.{clientName}.registration.redirect-uris={uris}
@@ -35,16 +35,20 @@ spring.security.oauth2.authorizationserver.client.{clientName}.token.reuse-refre
 spring.security.oauth2.authorizationserver.client.{clientName}.token.id-token-signature-algorithm={algorithm}
 ```
 
-Note: Endpoint fields only written if different from defaults. Client secret uses `{bcrypt}` or `{noop}` prefix.
+Note: Endpoint fields only written if different from defaults.
 Collection fields (methods, grant-types, uris, scopes) joined with `,`.
+
+### Client secret handling (security)
+
+**Never substitute a literal client secret into the file.** Always emit `${AUTHSERVER_{CLIENT_NAME_UPPER}_CLIENT_SECRET}` where `{CLIENT_NAME_UPPER}` is the uppercased `{clientName}` (non-alphanum replaced with `_`). The encoded-secret prefix (`{bcrypt}` / `{noop}`) belongs to the env-var value at runtime, not to the property file. After generation, report to the user the exact env var name that must be set before running the app. Do NOT ask the user for the secret value — it must not enter the conversation.
 
 ## Variables
 | Variable | Source | Default |
 |----------|--------|---------|
 | `{issuer}` | user input | skip if empty |
 | `{clientName}` | user input | — |
+| `{CLIENT_NAME_UPPER}` | `{clientName}` uppercased, non-alphanum replaced with `_` | — |
 | `{clientId}` | user input | — |
-| `{encodedSecret}` | user input (auto-prefixed with `{bcrypt}` or `{noop}`) | — |
 | `{authorizationUri}` | user input | skip if default |
 | `{logoutUri}` | user input | skip if default |
 | `{clientRegistrationUri}` | user input | skip if default |

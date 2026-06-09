@@ -184,8 +184,6 @@ Each item must be a concrete MCP tool call, not a category name.
 9. list_entity_repositories (Visit FQN)
 ```
 
-This plan is what will be executed in the next step — do not deviate from it without reason.
-
 ---
 
 ## Step 4 — Execute exploration plan via subagent
@@ -199,6 +197,11 @@ Execute the exploration plan below by calling each MCP tool in order.
 Use MCP tools directly (e.g. get_entity_details, list_entity_repositories).
 
 Collect and return ALL results in full — do not summarize or truncate.
+
+Secret redaction: if any returned value belongs to a key that looks like a credential
+(`password`, `passwd`, `secret`, `token`, `api-key`, `apikey`, `access-key`, `private-key`,
+`credentials`, `client-secret`, `auth`, or similar), replace only the value with `[REDACTED]`
+and keep the key and surrounding structure intact. Never echo credential values verbatim.
 
 Plan:
 <paste the numbered plan from step 3 here>

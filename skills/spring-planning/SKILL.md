@@ -140,8 +140,8 @@ check `docs/plans/` for existing files, then create `docs/plans/yyyymmdd-<task-n
 
 ## Progress Tracking
 - mark completed items with `[x]` immediately when done
-- add newly discovered tasks with ➕ prefix
-- document issues/blockers with ⚠️ prefix
+- add newly discovered tasks with `[+]` prefix
+- document issues/blockers with `[!]` prefix
 - update plan if implementation deviates from original scope
 - keep plan in sync with actual work done
 
@@ -306,8 +306,8 @@ then use AskUserQuestion:
 
 3. **plan tracking during implementation**:
     - update checkboxes immediately when tasks complete
-    - add ➕ prefix for newly discovered tasks
-    - add ⚠️ prefix for blockers
+    - add `[+]` prefix for newly discovered tasks
+    - add `[!]` prefix for blockers
     - modify plan if scope changes significantly
 
 4. **on completion**:

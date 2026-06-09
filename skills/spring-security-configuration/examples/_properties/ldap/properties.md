@@ -9,9 +9,13 @@ LDAP_STATEFUL authentication type. Properties are extracted via `@Value` field i
 |-----|-------|-----------|
 | `{appPrefix}.ldap.url` | `ldap(s)://{host}:{port}` | always |
 | `{appPrefix}.ldap.managerDn` | `{managerDn}` | if anonymousAccess=false |
-| `{appPrefix}.ldap.managerPassword` | `{managerPassword}` | if anonymousAccess=false |
+| `{appPrefix}.ldap.managerPassword` | `${LDAP_MANAGER_PASSWORD}` | if anonymousAccess=false |
 | `{appPrefix}.ldap.userDnPatterns` | `{userDnPatterns}` (comma-separated) | if userDnPatterns not empty |
 | `{appPrefix}.ldap.groupSearchBase` | `{groupSearchBase}` | if authorities=GROUP or GROUP_WITH_HIERARCHY |
+
+### Manager password handling (security)
+
+**Never substitute a literal manager password into the file.** Always emit the value as `${LDAP_MANAGER_PASSWORD}`. After generation, report to the user the exact env var name that must be set before running the app (shell `export`, IDE run config, or deployment secret store). Do NOT ask the user for the password value — it must not enter the conversation.
 
 Each property is injected as a `@Value`-annotated field. Replace `{appPrefix}` with the actual value from Step 1.
 
