@@ -48,17 +48,18 @@ Create a Connekt script that tests the visit creation API.
 
 | Skill | Что помогает делать агенту | Статус |
 |-------|-----------------------------|--------|
-| [`spring-explore`](skills/spring-explore/SKILL.md) | Исследовать Spring Boot-приложение и собрать контекст проекта: стек, модули, доменные сущности, репозитории, сервисы и REST-эндпоинты. | Available |
-| [`spring-planning`](skills/spring-planning/SKILL.md) | Создать структурированный план реализации в `docs/plans/`: сбор контекста, выбор подхода и декомпозиция задач. | Available |
-| [`spring-data-jpa`](skills/spring-data-jpa/SKILL.md) | Работать с JPA-сущностями, репозиториями, проекциями и транзакционным кодом с учётом соглашений проекта. | Available |
-| [`spring-data-jdbc`](skills/spring-data-jdbc/SKILL.md) | Работать с Spring Data JDBC-агрегатами, `AggregateReference`, `@MappedCollection`, embedded-объектами и JDBC-репозиториями. | Available |
-| [`crud-rest-controller`](skills/crud-rest-controller/SKILL.md) | Создавать Spring REST-контроллеры с CRUD-эндпоинтами на базе Spring Data repository, опционально с DTO, маппингом и пагинацией. | In development |
-| [`dto-creator`](skills/dto-creator/SKILL.md) | Создавать DTO для сущностей: Java class, Java record, Java + Lombok или Kotlin data class. | In development |
-| [`mapper-creator`](skills/mapper-creator/SKILL.md) | Создавать мапперы между entity и DTO через MapStruct или custom converter. | In development |
-| [`spring-security-configuration`](skills/spring-security-configuration/SKILL.md) | Генерировать Spring Security-конфигурацию для authentication, authorization, HTTP protection и вспомогательных beans/properties. | In development |
-| [`connekt-script-writer`](skills/connekt-script-writer/SKILL.md) | Писать `.connekt.kts` scripts для Kotlin-based HTTP automation и тестирования эндпоинтов. | Available |
-| [`java-debug`](skills/java-debug/SKILL.md) | Отлаживать Java-приложения через IntelliJ Debug MCP: breakpoints, debug sessions, stepping, evaluate expression и stack inspection. | In development |
-| [`amplicode-install`](skills/amplicode-install/SKILL.md) | Установить Amplicode IntelliJ plugin в поддерживаемые IDE и провести пользователя через настройку Spring Agent. | Available |
+| [`spring-explore`](skills/spring-explore/SKILL.md) | Исследовать Spring Boot-приложение и собрать контекст проекта: стек, модули, доменные сущности, репозитории, сервисы и REST-эндпоинты. | Готов |
+| [`spring-planning`](skills/spring-planning/SKILL.md) | Создать структурированный план реализации в `docs/plans/`: сбор контекста, выбор подхода и декомпозиция задач. | Готов |
+| [`spring-data-jpa`](skills/spring-data-jpa/SKILL.md) | Работать с JPA-сущностями, репозиториями, проекциями и транзакционным кодом с учётом соглашений проекта. | Готов |
+| [`spring-data-jdbc`](skills/spring-data-jdbc/SKILL.md) | Работать с Spring Data JDBC-агрегатами, `AggregateReference`, `@MappedCollection`, embedded-объектами и JDBC-репозиториями. | Готов |
+| [`crud-rest-controller`](skills/crud-rest-controller/SKILL.md) | Создавать Spring REST-контроллеры с CRUD-эндпоинтами на базе Spring Data repository, опционально с DTO, маппингом и пагинацией. | В разработке |
+| [`dto-creator`](skills/dto-creator/SKILL.md) | Создавать DTO для сущностей: Java class, Java record, Java + Lombok или Kotlin data class. | В разработке |
+| [`mapper-creator`](skills/mapper-creator/SKILL.md) | Создавать мапперы между entity и DTO через MapStruct или custom converter. | В разработке |
+| [`spring-security-configuration`](skills/spring-security-configuration/SKILL.md) | Генерировать Spring Security-конфигурацию для authentication, authorization, HTTP protection и вспомогательных beans/properties. | В разработке |
+| [`kafka-configuration`](skills/kafka-configuration/SKILL.md) | Настраивать Spring Boot Kafka starter через `application.properties` / `application.yml` и, при необходимости, генерировать `KafkaConfiguration`. | Готов |
+| [`connekt-script-writer`](skills/connekt-script-writer/SKILL.md) | Писать `.connekt.kts` scripts для Kotlin-based HTTP automation и тестирования эндпоинтов. | Готов |
+| [`java-debug`](skills/java-debug/SKILL.md) | Отлаживать Java-приложения через IntelliJ Debug MCP: breakpoints, debug sessions, stepping, evaluate expression и stack inspection. | В разработке |
+| [`amplicode-install`](skills/amplicode-install/SKILL.md) | Установить Amplicode IntelliJ plugin в поддерживаемые IDE и провести пользователя через настройку Spring Agent. | Готов |
 
 ## Как Это Работает
 
@@ -157,7 +158,7 @@ Add an endpoint that returns all pets for an owner by owner id.
 
 ## Статус Проекта
 
-Репозиторий активно развивается. Skills со статусом **Available** уже готовы для регулярного использования в своих основных сценариях. Skills со статусом **In development** имеют рабочий workflow, но ещё расширяются, настраиваются и тестируются на большем количестве Spring-проектов и agent runtimes.
+Репозиторий активно развивается. Skills со статусом **Готов** уже подходят для регулярного использования в своих основных сценариях. Skills со статусом **В разработке** имеют рабочий workflow, но ещё расширяются, настраиваются и тестируются на большем количестве Spring-проектов и agent runtimes.
 
 Особенно полезен feedback с реальных проектов: недостающие соглашения, неудобные вопросы, неподдержанные Spring-паттерны и ситуации, где несколько skills работают вместе неидеально.
 
