@@ -121,9 +121,18 @@ Rules for `AskUserQuestion` calls in this skill:
 
 When `AskUserQuestion` is **not** the right tool:
 - Free-form input with no enumerable set of options (e.g. URL, client ID,
-  secret, patterns) — ask in plain text.
+  DN, patterns) — ask in plain text.
 - The "single confirmation line" from principle 2 — that is a plain
   yes/no, not an enumerated choice.
+
+**NEVER ask the user for credentials of any kind** (client secret, manager
+password, API key, token, etc.) — not via `AskUserQuestion`, not in plain
+text, not in any form. Secret values must not enter the conversation. For
+every credential field, the skill emits an env-var placeholder
+(`${OAUTH_*_CLIENT_SECRET}`, `${LDAP_MANAGER_PASSWORD}`,
+`${AUTHSERVER_*_CLIENT_SECRET}`) into `application.properties` and reports
+the placeholder name to the user after generation — see the per-variant
+references and `_properties/*/properties.md` "secret handling" sections.
 
 The question lists in Steps 2–3 and in reference files are a **fallback**
 for case 4. They are NOT a script to execute top-to-bottom. If a question's
@@ -281,6 +290,7 @@ Each reference file specifies:
 6. Read the variant-specific properties file from `_properties/{variant}/properties.md`
 7. Write/append to the application properties file
 8. Report: "Added dependencies: [list]. Wrote to application.properties: [keys]"
+9. If the generated properties contain any `${...}` env-var placeholders for credentials (`OAUTH_*_CLIENT_SECRET`, `LDAP_MANAGER_PASSWORD`, `AUTHSERVER_*_CLIENT_SECRET`), list every placeholder explicitly and instruct the user to set these env vars before running the app (shell `export`, IDE run configuration, or deployment secret store). **Never ask the user for the secret value itself** — secrets must not enter the conversation history.
 
 ---
 

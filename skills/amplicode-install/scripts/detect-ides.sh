@@ -23,9 +23,7 @@ json_escape() {
   printf '%s' "$s"
 }
 
-# Read a string field from product-info.json. We use a tolerant grep+sed because jq is
-# not guaranteed to be installed on the user's machine. product-info.json is a flat
-# JSON object with simple string values, so this is safe.
+# Read a string field from product-info.json without requiring jq.
 read_pi_field() {
   local file="$1" field="$2"
   grep -E "\"$field\"" "$file" 2>/dev/null \
@@ -97,26 +95,24 @@ amplicode_installed_in() {
   return 1
 }
 
-# Compute the system/caches directory where IDEA keeps .pid, .port, .appinfo at runtime.
+# Compute the runtime system directory.
+# Vendor namespace is used in per-user IntelliJ Platform directories.
 system_dir_for() {
-  local data_dir_name="$1"
+  local data_dir_name="$1" vendor="${2:-JetBrains}"
   case "$OS" in
-    Darwin) printf '%s' "$HOME/Library/Caches/JetBrains/$data_dir_name" ;;
-    Linux)  printf '%s' "$HOME/.cache/JetBrains/$data_dir_name" ;;
+    Darwin) printf '%s' "$HOME/Library/Caches/$vendor/$data_dir_name" ;;
+    Linux)  printf '%s' "$HOME/.cache/$vendor/$data_dir_name" ;;
     *)
       if [ -n "${LOCALAPPDATA:-}" ]; then
-        printf '%s' "$LOCALAPPDATA/JetBrains/$data_dir_name"
+        printf '%s' "$LOCALAPPDATA/$vendor/$data_dir_name"
       else
-        printf '%s' "$HOME/AppData/Local/JetBrains/$data_dir_name"
+        printf '%s' "$HOME/AppData/Local/$vendor/$data_dir_name"
       fi
       ;;
   esac
 }
 
-# Returns 0 if the current process is a descendant of target_pid (walks PPID chain
-# up from $$). Used to detect the "self-host" case: the agent running in a
-# JetBrains terminal inside the very IDE we are about to restart — killing it
-# would kill the agent before installPlugins runs.
+# Returns 0 when this script is running under the target IDE process.
 is_descendant_of_pid() {
   local target_pid="$1"
   [ -n "$target_pid" ] || return 1
@@ -133,17 +129,11 @@ is_descendant_of_pid() {
   return 1
 }
 
-# Returns the PID of the running IDE (if any) by reading .pid in its system-dir and
-# verifying the PID points at a live process via `kill -0`. Prints the PID on stdout
-# and returns 0; prints nothing and returns 1 if the IDE is not running.
-#
-# Why .pid + kill -0 (not pgrep / not lsof):
-# - `pgrep -f` truncates the JVM command line on macOS; gives false negatives.
-# - `lsof` on .lock fails on macOS because flock(2) advisory locks are not exposed.
+# Returns the IDE PID from its .pid file when the process is still running.
 ide_running_pid() {
-  local data_dir_name="$1"
+  local data_dir_name="$1" vendor="${2:-JetBrains}"
   local system_dir
-  system_dir="$(system_dir_for "$data_dir_name")"
+  system_dir="$(system_dir_for "$data_dir_name" "$vendor")"
   local pid_file="$system_dir/.pid"
   [ -f "$pid_file" ] || return 1
   local pid
@@ -156,23 +146,22 @@ ide_running_pid() {
   return 1
 }
 
-# Compute the plugins directory from dataDirectoryName, per IntelliJ Platform conventions.
-# See https://www.jetbrains.com/help/idea/directories-used-by-the-ide-to-store-settings-caches-plugins-and-logs.html
+# Compute the plugins directory from dataDirectoryName and vendor namespace.
 plugins_dir_for() {
-  local data_dir_name="$1"
+  local data_dir_name="$1" vendor="${2:-JetBrains}"
   case "$OS" in
     Darwin)
-      printf '%s' "$HOME/Library/Application Support/JetBrains/$data_dir_name/plugins"
+      printf '%s' "$HOME/Library/Application Support/$vendor/$data_dir_name/plugins"
       ;;
     Linux)
-      printf '%s' "$HOME/.local/share/JetBrains/$data_dir_name"
+      printf '%s' "$HOME/.local/share/$vendor/$data_dir_name"
       ;;
     *)
       # MSYS/Cygwin fallback (Windows users should use the PowerShell script instead)
       if [ -n "${APPDATA:-}" ]; then
-        printf '%s' "$APPDATA/JetBrains/$data_dir_name/plugins"
+        printf '%s' "$APPDATA/$vendor/$data_dir_name/plugins"
       else
-        printf '%s' "$HOME/AppData/Roaming/JetBrains/$data_dir_name/plugins"
+        printf '%s' "$HOME/AppData/Roaming/$vendor/$data_dir_name/plugins"
       fi
       ;;
   esac
@@ -200,7 +189,7 @@ add_pi() {
 }
 
 # Recursively find product-info.json files under a search root, limited depth.
-# Depth differs by location: top-level /Applications has shallow apps, Toolbox is deeper.
+# Search depth is limited per install location.
 scan_root() {
   local root="$1" max_depth="$2"
   [ -d "$root" ] || return 0
@@ -250,13 +239,15 @@ for pi in "${pi_paths[@]:-}"; do
   product_name="$(read_pi_field "$pi" name)"
   version="$(read_pi_field "$pi" version)"
   data_dir_name="$(read_pi_field "$pi" dataDirectoryName)"
+  product_vendor="$(read_pi_field "$pi" productVendor)"
+  [ -n "$product_vendor" ] || product_vendor="JetBrains"
 
   [ -n "$product_code" ] || continue
   [ -n "$data_dir_name" ] || continue
 
   is_target "$product_code" "$product_name" || continue
 
-  plugins_dir="$(plugins_dir_for "$data_dir_name")"
+  plugins_dir="$(plugins_dir_for "$data_dir_name" "$product_vendor")"
 
   if amplicode_installed_in "$plugins_dir"; then
     amplicode_installed=true
@@ -264,7 +255,7 @@ for pi in "${pi_paths[@]:-}"; do
     amplicode_installed=false
   fi
 
-  running_pid="$(ide_running_pid "$data_dir_name" || true)"
+  running_pid="$(ide_running_pid "$data_dir_name" "$product_vendor" || true)"
   if [ -n "$running_pid" ]; then
     running=true
     pid_json="$running_pid"

@@ -42,8 +42,9 @@ If authenticated:
 ```
 Manager credentials:
 1. **Manager DN?** []
-2. **Manager Password?** []
 ```
+
+**Do NOT ask the user for the manager password.** The password value must not enter the conversation. The skill emits `${LDAP_MANAGER_PASSWORD}` in `application.properties` as a placeholder — see `_properties/ldap/properties.md` → "Manager password handling". After generation, tell the user the exact env var name and instruct them to set it locally (shell `export`, IDE run config) or via their deployment's secret store.
 
 ### Authentication Type Question
 

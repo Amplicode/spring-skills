@@ -5,7 +5,7 @@
 ```properties
 spring.security.oauth2.client.registration.{prefix}.client-id={clientId}
 spring.security.oauth2.client.registration.{prefix}.provider={prefix}
-spring.security.oauth2.client.registration.{prefix}.client-secret={clientSecret}
+spring.security.oauth2.client.registration.{prefix}.client-secret=${OAUTH_{PREFIX_UPPER}_CLIENT_SECRET}
 spring.security.oauth2.client.registration.{prefix}.client-name={name}
 spring.security.oauth2.client.registration.{prefix}.client-authentication-method={clientAuthMethod}
 spring.security.oauth2.client.registration.{prefix}.authorization-grant-type={grantType}
@@ -24,12 +24,16 @@ Note: `client-id`, `provider`, `client-secret`, `client-name` are always written
 
 For predefined providers (GOOGLE, GITHUB, FACEBOOK, OKTA), the `provider.*` section is NOT needed -- Spring auto-discovers those.
 
+### Client secret handling (security)
+
+**Never substitute a literal client-secret value into the file.** Always emit `${OAUTH_{PREFIX_UPPER}_CLIENT_SECRET}` where `{PREFIX_UPPER}` is the uppercased `{prefix}` (e.g. `${OAUTH_KEYCLOAK_CLIENT_SECRET}`). After generation, report to the user the exact env var name that must be set before running the app (e.g. via shell `export`, IDE run config, or a deployment secret store). Do NOT ask the user for the secret value — it must not enter the conversation.
+
 ## Variables
 | Variable | Source | Default |
 |----------|--------|---------|
 | `{prefix}` | derived from provider name (lowercase, non-alphanum replaced with `_`) | — |
+| `{PREFIX_UPPER}` | `{prefix}` uppercased, non-alphanum replaced with `_` | — |
 | `{clientId}` | user input | — |
-| `{clientSecret}` | user input | — |
 | `{name}` | user input | provider name |
 | `{clientAuthMethod}` | user input | skip if empty |
 | `{grantType}` | user input | skip if empty |
