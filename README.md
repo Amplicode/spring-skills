@@ -1,32 +1,32 @@
 # Amplicode Spring Skills
 
-**Spring Skills** — открытый набор skills для **Spring Agent Toolkit**: проверенные инструкции, workflow и примеры, которые помогают AI-агентам предсказуемо работать со Spring Boot-проектами.
+**Spring Skills** is an open set of skills for the **Spring Agent Toolkit**: proven instructions, workflows, and examples that help AI agents work with Spring Boot projects predictably.
 
-Репозиторий поддерживается командами Amplicode и Spring АйО и сфокусирован на практических задачах Spring-разработки: исследование существующего приложения, изменение Spring Data-модели, создание DTO и мапперов, добавление REST-контроллеров, настройка Spring Security, HTTP-автоматизация и отладка через IntelliJ IDEA.
+The repository is maintained by the Amplicode and Spring AIO teams and focuses on practical Spring development tasks: exploring an existing application, modifying the Spring Data model, creating DTOs and mappers, adding REST controllers, configuring Spring Security, HTTP automation, and debugging via IntelliJ IDEA.
 
-## Зачем Это Нужно
+## Why It Matters
 
-Обычные AI-агенты неплохо пишут Spring-подобный код, но часто опираются на стиль "среднего проекта с GitHub". В реальных проектах всё иначе: есть локальные соглашения по JPA-маппингам, репозиториям, DTO, MapStruct, REST-неймингу, транзакциям, безопасности, тестам и миграциям.
+Typical AI agents write Spring-like code reasonably well, but they often rely on the style of an "average GitHub project". Real projects are different: they have local conventions for JPA mappings, repositories, DTOs, MapStruct, REST naming, transactions, security, tests, and migrations.
 
-Spring Skills дают агенту более узкую и Spring-aware модель работы:
+Spring Skills give the agent a narrower, Spring-aware working model:
 
-- сначала изучать текущее приложение, а уже потом менять код;
-- следовать соглашениям проекта, а не придумывать новые;
-- использовать структурированный Spring-контекст из Spring MCP, когда он доступен;
-- разбивать типовые Spring-задачи на сфокусированные workflow;
-- работать несколькими skills вместе без конфликтующих инструкций.
+- explore the current application first, and only then change code;
+- follow the project's conventions instead of inventing new ones;
+- use structured Spring context from Spring MCP when it is available;
+- break typical Spring tasks into focused workflows;
+- run multiple skills together without conflicting instructions.
 
-Подробнее про идею и состав Toolkit: [Spring Agent Toolkit: ультимативный набор для вашего AI-агента](https://habr.com/ru/companies/haulmont/articles/1034688/).
+More about the idea and the Toolkit's composition: [Spring Agent Toolkit: the ultimate set for your AI agent](https://habr.com/ru/companies/haulmont/articles/1034688/).
 
-## Быстрый Старт
+## Quick Start
 
-Установить все skills глобально во все поддерживаемые AI-агенты:
+Install all skills globally into all supported AI agents:
 
 ```bash
 npx skills add Amplicode/spring-skills -g
 ```
 
-После этого откройте Spring Boot-проект в агенте и дайте ему конкретную Spring-задачу, например:
+After that, open a Spring Boot project in your agent and give it a concrete Spring task, for example:
 
 ```text
 Explore this project and explain its domain model.
@@ -40,68 +40,68 @@ Add a CRUD REST controller for Customer using DTOs and MapStruct.
 Create a Connekt script that tests the visit creation API.
 ```
 
-Для полного сценария Spring Agent Toolkit установите плагин Amplicode в IntelliJ IDEA или OpenIDE, откройте проект и нажмите **"Настроить Spring Agent"** на welcome screen Amplicode. Это подключит MCP-инструменты, через которые skills смогут получать Spring-структуру проекта напрямую из IDE.
+For the full Spring Agent Toolkit experience, install the Amplicode plugin in IntelliJ IDEA or OpenIDE, open your project, and click **"Set Up Spring Agent"** on the Amplicode welcome screen. This connects the MCP tools that allow skills to get the Spring structure of the project directly from the IDE.
 
-Полная инструкция: [Spring Agent Toolkit — подключение к AI-агентам](https://amplicode.ru/documentation/spring-agent/)
+Full instructions: [Spring Agent Toolkit — connecting to AI agents](https://amplicode.ru/documentation/spring-agent/)
 
-## Что Внутри
+## What's Inside
 
-| Skill | Что помогает делать агенту | Статус |
+| Skill | What it helps the agent do | Status |
 |-------|-----------------------------|--------|
-| [`spring-explore`](skills/spring-explore/SKILL.md) | Исследовать Spring Boot-приложение и собрать контекст проекта: стек, модули, доменные сущности, репозитории, сервисы и REST-эндпоинты. | Готов |
-| [`spring-planning`](skills/spring-planning/SKILL.md) | Создать структурированный план реализации в `docs/plans/`: сбор контекста, выбор подхода и декомпозиция задач. | Готов |
-| [`spring-data-jpa`](skills/spring-data-jpa/SKILL.md) | Работать с JPA-сущностями, репозиториями, проекциями и транзакционным кодом с учётом соглашений проекта. | Готов |
-| [`spring-data-jdbc`](skills/spring-data-jdbc/SKILL.md) | Работать с Spring Data JDBC-агрегатами, `AggregateReference`, `@MappedCollection`, embedded-объектами и JDBC-репозиториями. | Готов |
-| [`crud-rest-controller`](skills/crud-rest-controller/SKILL.md) | Создавать Spring REST-контроллеры с CRUD-эндпоинтами на базе Spring Data repository, опционально с DTO, маппингом и пагинацией. | В разработке |
-| [`dto-creator`](skills/dto-creator/SKILL.md) | Создавать DTO для сущностей: Java class, Java record, Java + Lombok или Kotlin data class. | В разработке |
-| [`mapper-creator`](skills/mapper-creator/SKILL.md) | Создавать мапперы между entity и DTO через MapStruct или custom converter. | В разработке |
-| [`spring-security-configuration`](skills/spring-security-configuration/SKILL.md) | Генерировать Spring Security-конфигурацию для authentication, authorization, HTTP protection и вспомогательных beans/properties. | В разработке |
-| [`kafka-configuration`](skills/kafka-configuration/SKILL.md) | Настраивать Spring Boot Kafka starter через `application.properties` / `application.yml` и, при необходимости, генерировать `KafkaConfiguration`. | Готов |
-| [`connekt-script-writer`](skills/connekt-script-writer/SKILL.md) | Писать `.connekt.kts` scripts для Kotlin-based HTTP automation и тестирования эндпоинтов. | Готов |
-| [`java-debug`](skills/java-debug/SKILL.md) | Отлаживать Java-приложения через IntelliJ Debug MCP: breakpoints, debug sessions, stepping, evaluate expression и stack inspection. | В разработке |
-| [`amplicode-install`](skills/amplicode-install/SKILL.md) | Установить Amplicode IntelliJ plugin в поддерживаемые IDE и провести пользователя через настройку Spring Agent. | Готов |
+| [`spring-explore`](skills/spring-explore/SKILL.md) | Explore a Spring Boot application and gather project context: stack, modules, domain entities, repositories, services, and REST endpoints. | Ready |
+| [`spring-planning`](skills/spring-planning/SKILL.md) | Create a structured implementation plan in `docs/plans/`: context gathering, approach selection, and task decomposition. | Ready |
+| [`spring-data-jpa`](skills/spring-data-jpa/SKILL.md) | Work with JPA entities, repositories, projections, and transactional code following the project's conventions. | Ready |
+| [`spring-data-jdbc`](skills/spring-data-jdbc/SKILL.md) | Work with Spring Data JDBC aggregates, `AggregateReference`, `@MappedCollection`, embedded objects, and JDBC repositories. | Ready |
+| [`crud-rest-controller`](skills/crud-rest-controller/SKILL.md) | Create Spring REST controllers with CRUD endpoints based on a Spring Data repository, optionally with DTOs, mapping, and pagination. | In progress |
+| [`dto-creator`](skills/dto-creator/SKILL.md) | Create DTOs for entities: Java class, Java record, Java + Lombok, or Kotlin data class. | In progress |
+| [`mapper-creator`](skills/mapper-creator/SKILL.md) | Create mappers between entities and DTOs via MapStruct or a custom converter. | In progress |
+| [`spring-security-configuration`](skills/spring-security-configuration/SKILL.md) | Generate Spring Security configuration for authentication, authorization, HTTP protection, and supporting beans/properties. | In progress |
+| [`kafka-configuration`](skills/kafka-configuration/SKILL.md) | Configure the Spring Boot Kafka starter via `application.properties` / `application.yml` and, when needed, generate a `KafkaConfiguration`. | Ready |
+| [`connekt-script-writer`](skills/connekt-script-writer/SKILL.md) | Write `.connekt.kts` scripts for Kotlin-based HTTP automation and endpoint testing. | Ready |
+| [`java-debug`](skills/java-debug/SKILL.md) | Debug Java applications via IntelliJ Debug MCP: breakpoints, debug sessions, stepping, evaluate expression, and stack inspection. | In progress |
+| [`amplicode-install`](skills/amplicode-install/SKILL.md) | Install the Amplicode IntelliJ plugin into supported IDEs and guide the user through Spring Agent setup. | Ready |
 
-## Как Это Работает
+## How It Works
 
-Spring Agent Toolkit объединяет три слоя:
+The Spring Agent Toolkit combines three layers:
 
-1. **Skills** из этого репозитория объясняют агенту, как выполнять повторяющиеся Spring-задачи.
-2. **Spring MCP** отдаёт структурированную информацию из IDE: сущности, репозитории, зависимости beans, эндпоинты, зависимости модулей, миграции и исходные файлы.
-3. **Интеграции с агентами** устанавливают одни и те же skills в Codex, Claude Code, OpenCode, Gemini CLI, Qwen Code, Kilo Code, Veai и GitHub Copilot CLI там, где это поддерживается.
+1. **Skills** from this repository explain to the agent how to perform recurring Spring tasks.
+2. **Spring MCP** provides structured information from the IDE: entities, repositories, bean dependencies, endpoints, module dependencies, migrations, and source files.
+3. **Agent integrations** install the same skills into Codex, Claude Code, OpenCode, Gemini CLI, Qwen Code, Kilo Code, Veai, and GitHub Copilot CLI where supported.
 
-Большинство Spring skills начинают с preflight-проверки. Если Spring MCP подключён, агент использует его для точного анализа приложения. Если MCP недоступен, skill либо помогает настроить Amplicode, либо переходит к прямому чтению файлов, когда такой fallback безопасен для конкретного workflow.
+Most Spring skills start with a preflight check. If Spring MCP is connected, the agent uses it for precise application analysis. If MCP is unavailable, the skill either helps set up Amplicode or falls back to reading files directly when such a fallback is safe for the specific workflow.
 
-## Установка
+## Installation
 
-### Рекомендуемый способ: `npx skills`
+### Recommended way: `npx skills`
 
-Установить глобально во все обнаруженные поддерживаемые агенты:
+Install globally into all detected supported agents:
 
 ```bash
 npx skills add Amplicode/spring-skills -g
 ```
 
-Установить только для выбранных агентов:
+Install only for selected agents:
 
 ```bash
 npx skills add Amplicode/spring-skills -g -a claude-code -a codex -a gemini-cli
 ```
 
-Посмотреть список skills без установки:
+List the skills without installing:
 
 ```bash
 npx skills add Amplicode/spring-skills --list
 ```
 
-Обновить установленные skills:
+Update installed skills:
 
 ```bash
 npx skills update
 ```
 
-Без флага `-g` skills устанавливаются в текущий проект. С флагом `-g` — в домашние каталоги поддерживаемых агентов.
+Without the `-g` flag, skills are installed into the current project. With `-g`, they go into the home directories of supported agents.
 
-### Альтернатива: installer из репозитория
+### Alternative: installer from the repository
 
 macOS/Linux:
 
@@ -115,38 +115,38 @@ Windows PowerShell:
 irm https://raw.githubusercontent.com/Amplicode/spring-skills/main/install.ps1 | iex
 ```
 
-Installer клонирует репозиторий в `~/.agents/.amplicode/spring-skills`, создаёт ссылки на skills для поддерживаемых агентов и устанавливает marketplace plugins для Claude Code и GitHub Copilot CLI, если их CLI доступны в системе.
+The installer clones the repository into `~/.agents/.amplicode/spring-skills`, creates skill links for supported agents, and installs marketplace plugins for Claude Code and GitHub Copilot CLI if their CLIs are available on the system.
 
-## Требования
+## Requirements
 
-- AI coding agent с поддержкой skills/plugins.
-- Git и Node.js/npm для установки через `npx skills`.
-- OpenIDE, IntelliJ IDEA или GigaIDE с плагином Amplicode для Spring-анализа через MCP.
-- Spring Boot-проект для использования Spring-specific skills.
+- An AI coding agent with skills/plugins support.
+- Git and Node.js/npm for installation via `npx skills`.
+- OpenIDE, IntelliJ IDEA, or GigaIDE with the Amplicode plugin for Spring analysis via MCP.
+- A Spring Boot project to use the Spring-specific skills.
 
-## Пример Workflow
+## Example Workflow
 
-Попросите агента реализовать Spring-фичу:
+Ask the agent to implement a Spring feature:
 
 ```text
 Add an endpoint that returns all pets for an owner by owner id.
 ```
 
-С установленными Spring Skills агент может провести задачу через сфокусированные шаги:
+With Spring Skills installed, the agent can take the task through focused steps:
 
-1. `spring-explore` проверит структуру проекта, сущности, репозитории, сервисы и существующие эндпоинты.
-2. `spring-data-jpa` или `spring-data-jdbc` применит правила persistence-стека проекта.
-3. `dto-creator` и `mapper-creator` создадут response-типы и conversion-код, если они нужны.
-4. `crud-rest-controller` добавит или расширит REST-слой.
-5. `connekt-script-writer` сможет создать HTTP-скрипт для проверки эндпоинта.
+1. `spring-explore` checks the project structure, entities, repositories, services, and existing endpoints.
+2. `spring-data-jpa` or `spring-data-jdbc` applies the rules of the project's persistence stack.
+3. `dto-creator` and `mapper-creator` create response types and conversion code if they are needed.
+4. `crud-rest-controller` adds or extends the REST layer.
+5. `connekt-script-writer` can create an HTTP script to verify the endpoint.
 
-Главное здесь не просто генерация кода. Skills помогают агенту задавать недостающие вопросы, переиспользовать локальные соглашения и не смешивать несовместимые Spring-подходы.
+The key point here is not just code generation. Skills help the agent ask the missing questions, reuse local conventions, and avoid mixing incompatible Spring approaches.
 
-## Структура Репозитория
+## Repository Structure
 
 ```text
 .
-├── skills/                    # Skill definitions, references и examples
+├── skills/                    # Skill definitions, references, and examples
 ├── install.sh                 # macOS/Linux installer
 ├── install.ps1                # Windows installer
 ├── .codex-plugin/             # Codex plugin manifest
@@ -154,28 +154,28 @@ Add an endpoint that returns all pets for an owner by owner id.
 └── .github/plugin/            # GitHub Copilot plugin manifest
 ```
 
-Каждый skill живёт в отдельной директории и начинается с `SKILL.md`. Многие skills дополнительно содержат `references/` и `examples/`, чтобы агент использовал проверенные паттерны вместо свободной импровизации большими фрагментами кода.
+Each skill lives in its own directory and starts with `SKILL.md`. Many skills also include `references/` and `examples/` so the agent uses proven patterns instead of freely improvising large chunks of code.
 
-## Статус Проекта
+## Project Status
 
-Репозиторий активно развивается. Skills со статусом **Готов** уже подходят для регулярного использования в своих основных сценариях. Skills со статусом **В разработке** имеют рабочий workflow, но ещё расширяются, настраиваются и тестируются на большем количестве Spring-проектов и agent runtimes.
+The repository is under active development. Skills with the **Ready** status are already suitable for regular use in their primary scenarios. Skills with the **In progress** status have a working workflow but are still being extended, tuned, and tested on more Spring projects and agent runtimes.
 
-Особенно полезен feedback с реальных проектов: недостающие соглашения, неудобные вопросы, неподдержанные Spring-паттерны и ситуации, где несколько skills работают вместе неидеально.
+Feedback from real projects is especially valuable: missing conventions, awkward questions, unsupported Spring patterns, and situations where several skills don't work together perfectly.
 
 ## Contributing
 
-Contributions are welcome. Особенно полезны:
+Contributions are welcome. Especially useful are:
 
-- новые Spring skills;
-- дополнительные examples для Java и Kotlin-проектов;
-- улучшенные fallbacks для runtimes без MCP;
-- bug reports с конкретным проектным контекстом;
-- улучшения install scripts и agent manifests;
-- исправления документации.
+- new Spring skills;
+- additional examples for Java and Kotlin projects;
+- improved fallbacks for runtimes without MCP;
+- bug reports with specific project context;
+- improvements to install scripts and agent manifests;
+- documentation fixes.
 
-При изменении skill держите его сфокусированным на одной задаче и явно описывайте trigger conditions. Skills в этом репозитории должны работать вместе, поэтому избегайте широких инструкций, которые могут конфликтовать с соседними Spring workflow.
+When changing a skill, keep it focused on a single task and describe its trigger conditions explicitly. Skills in this repository must work together, so avoid broad instructions that could conflict with neighboring Spring workflows.
 
-## Ссылки
+## Links
 
 - [Spring Agent Toolkit documentation](https://amplicode.ru/documentation/spring-agent/)
 - [Habr article: Spring Agent Toolkit](https://habr.com/ru/companies/haulmont/articles/1034688/)
