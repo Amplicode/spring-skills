@@ -3,9 +3,9 @@ name: spring-planning
 description: Create structured implementation plan in docs/plans/
 ---
 
-# Preflight: Amplicode MCP
+# Preflight: Spring MCP
 
-This skill is part of the **Spring Agent Toolkit** and is designed to work with the **Amplicode MCP server** (provided by the Amplicode IntelliJ plugin). Before doing anything else, check your tool list for any Amplicode MCP tool — they are exposed under the `amplicode` MCP server (e.g. `get_project_summary`, `list_module_dependencies`, `get_entity_details`); harnesses that flatten MCP tools into the tool list use the `mcp__amplicode__` prefix on the same names.
+This skill is part of the **Spring Agent Toolkit** and is designed to work with the **Spring MCP server** (provided by the Amplicode IntelliJ plugin). Before doing anything else, check your tool list for any Spring MCP tool — they are exposed under the `amplicode` MCP server (e.g. `get_project_summary`, `list_module_dependencies`, `get_entity_details`); harnesses that flatten MCP tools into the tool list use the `mcp__amplicode__` prefix on the same names.
 
 - **If at least one Amplicode tool is available** — MCP is connected. Proceed with the skill below.
 - **If none are available** — stop and invoke the **`amplicode-install`** skill (bundled with the Spring Agent Toolkit). It installs the Amplicode plugin and walks the user through the **«Настроить Spring Agent»** welcome-screen button + MCP-client restart. After it completes, the MCP tools become available — resume this skill.

@@ -16,7 +16,7 @@ description: >
 
 # Preflight: IntelliJ Debug MCP
 
-This skill is part of the **Spring Agent Toolkit** and is designed to work with the **IntelliJ Debug MCP server** (provided by the Amplicode IntelliJ plugin alongside the main Amplicode MCP). Before doing anything else, check your tool list for any debug MCP tool — they are exposed under the `intellij-debug` MCP server (e.g. `toggle_breakpoint`, `evaluate_expression`, `get_stack_trace`); harnesses that flatten MCP tools into the tool list use the `mcp__intellij-debug__` prefix on the same names.
+This skill is part of the **Spring Agent Toolkit** and is designed to work with the **IntelliJ Debug MCP server** (provided by the Amplicode IntelliJ plugin alongside the main Spring MCP). Before doing anything else, check your tool list for any debug MCP tool — they are exposed under the `intellij-debug` MCP server (e.g. `toggle_breakpoint`, `evaluate_expression`, `get_stack_trace`); harnesses that flatten MCP tools into the tool list use the `mcp__intellij-debug__` prefix on the same names.
 
 - **If at least one debug tool is available** — MCP is connected. Proceed with the skill below.
 - **If none are available** — stop and invoke the **`amplicode-install`** skill (bundled with the Spring Agent Toolkit). It installs the Amplicode plugin and walks the user through the **«Настроить Spring Agent»** welcome-screen button + MCP-client restart. After it completes, the debug MCP tools become available — resume this skill.

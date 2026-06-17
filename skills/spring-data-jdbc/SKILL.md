@@ -18,9 +18,9 @@ Do not refuse a task because one of these primitives is missing. Substitute the 
 
 ---
 
-# Preflight: Amplicode MCP
+# Preflight: Spring MCP
 
-This skill is part of the **Spring Agent Toolkit** and is designed to work with the **Amplicode MCP server** (provided by the Amplicode IntelliJ plugin). Before doing anything else, check your tool list for any Amplicode MCP tool — they are exposed under the `amplicode` MCP server (e.g. `get_jdbc_entity_details`, `list_all_domain_entities`, `list_entity_repositories`); harnesses that flatten MCP tools into the tool list use the `mcp__amplicode__` prefix on the same names.
+This skill is part of the **Spring Agent Toolkit** and is designed to work with the **Spring MCP server** (provided by the Amplicode IntelliJ plugin). Before doing anything else, check your tool list for any Spring MCP tool — they are exposed under the `amplicode` MCP server (e.g. `get_jdbc_entity_details`, `list_all_domain_entities`, `list_entity_repositories`); harnesses that flatten MCP tools into the tool list use the `mcp__amplicode__` prefix on the same names.
 
 - **If at least one Amplicode tool is available** — MCP is connected. Proceed with the skill below.
 - **If none are available** — stop and invoke the **`amplicode-install`** skill (bundled with the Spring Agent Toolkit). It installs the Amplicode plugin and walks the user through the **«Настроить Spring Agent»** welcome-screen button + MCP-client restart. After it completes, the MCP tools become available — resume this skill.
@@ -30,7 +30,7 @@ This skill is part of the **Spring Agent Toolkit** and is designed to work with 
 
 # MCP availability and fallbacks
 
-This skill prefers the amplicode MCP tools (`get_jdbc_entity_details`, `list_all_domain_entities`, `list_entity_repositories`) because they return resolved, project-wide answers in one call. If the amplicode MCP server is unreachable (connection error, tool not registered, harness without MCP support) and the user has chosen not to install the plugin via the **Preflight** above, do not refuse the task — fall back to direct file reads / grep:
+This skill prefers the Spring MCP tools (`get_jdbc_entity_details`, `list_all_domain_entities`, `list_entity_repositories`) because they return resolved, project-wide answers in one call. If the Spring MCP server is unreachable (connection error, tool not registered, harness without MCP support) and the user has chosen not to install the plugin via the **Preflight** above, do not refuse the task — fall back to direct file reads / grep:
 
 This project is **Kotlin-first** (Kotlin 2.2.20 primary, Java for some modules) — every fallback grep must hit both `*.kt` and `*.java`. Do not pass `-t java` to `rg`; either omit the type filter or use `-t kotlin -t java`.
 
@@ -41,7 +41,7 @@ This project is **Kotlin-first** (Kotlin 2.2.20 primary, Java for some modules) 
   ```
 - Instead of `get_jdbc_entity_details` — see the "Without `get_jdbc_entity_details`" subsection in `references/aggregate-rules-impl.md`. The manual procedure there yields the same `idField.type` / `aggregateRootFqn` / `aggregates` / `referencedBy` information by reading source files (both Java and Kotlin).
 
-State once at the start of the task that you are operating in fallback mode and why (e.g. "amplicode MCP not reachable — using file-read fallback"). Do not silently switch.
+State once at the start of the task that you are operating in fallback mode and why (e.g. "Spring MCP not reachable — using file-read fallback"). Do not silently switch.
 
 # Working with JDBC Entities
 
@@ -49,6 +49,7 @@ When the task involves creating or modifying a Spring Data JDBC entity:
 
 1. If entity conventions have not been detected yet in this conversation — check memory for previously saved conventions first (or earlier conversation turns in runtimes without persistent memory — see "Harness compatibility"). If found, reuse them. Otherwise read `references/entity-conventions.md` and follow all substeps there to detect project conventions.
 2. Read `references/entity-rules-impl.md` and follow the rules there when writing or modifying the entity.
+3. If the entities involve **any relationship between each other or to existing entities** — a collection field, a reference field, an FK column, or a relationship described in the user's request ("X belongs to Y", "Y has many X") — also read `references/aggregate-rules-impl.md` **before deciding the shape of any link**. The entity rules cover field syntax; the aggregate rules decide which relationship shapes are legal and in which direction the link may be held. Skipping this step is how illegal shapes (raw FK to a member of another aggregate, references to non-roots) get generated.
 
 **Tool-vs-source policy** — when you are going to edit the entity, read the source file directly. `get_jdbc_entity_details` is documented as a read-only analysis tool and explicitly says "you plan to modify the entity class afterward — read the file directly instead." Use the MCP tool only for cross-aggregate context that is not visible from one file:
 
