@@ -204,6 +204,8 @@ private AggregateReference<Pet, Long> pet; // Pet has no repository; nothing can
 
 ## Rule: One-to-many between two aggregates goes through a link entity
 
+**TL;DR:** If both participants are aggregate roots (`@Table` + `@Id`), **never** use direct `@MappedCollection` between them. Create a link entity. This rule has **no exceptions**.
+
 When a one-to-many relationship must connect two **different aggregates** — the "many" side is another aggregate root — model it with an additional link entity backed by its own table, combining `@MappedCollection` and `AggregateReference`. This applies **without exception** regardless of the holding side's role:
 
 - **root → root** — an aggregate root must point at many roots of another aggregate (e.g. `Order` → many `Product`);
@@ -264,6 +266,50 @@ public class OrderItemWarehouseRef {
 // re-insert/delete Product rows and destroy Product's independent lifecycle
 @MappedCollection(idColumn = "order_id")
 private Set<Product> products;
+```
+
+```java
+// EXAMPLE OF COMMON MISTAKE: Pet → Visit one-to-many (both are aggregate roots)
+// WRONG — Direct @MappedCollection makes Visit an owned child of Pet
+public class Pet {
+    @Id
+    private Long id;
+    
+    @MappedCollection(idColumn = "pet_id")  // ← WRONG! Visit is a root, not a child
+    private Set<Visit> visits;
+}
+
+public class Visit {
+    @Id
+    private Long id;
+    // Visit is destroyed when Pet is deleted — loses independent lifecycle
+}
+```
+
+```java
+// CORRECT — Pet → Visit one-to-many via link entity (PetVisitRef)
+@Table("pet_visit_ref")
+public class PetVisitRef {
+    @Id
+    private Long id;
+    
+    @Column(value = "visit_id")
+    private AggregateReference<Visit, Long> visit;
+}
+
+public class Pet {
+    @Id
+    private Long id;
+    
+    @MappedCollection(idColumn = "pet_id")
+    private Set<PetVisitRef> visits;  // ← Collection of links, not direct Visit refs
+}
+
+public class Visit {
+    @Id
+    private Long id;
+    // Visit is independent — survives even if Pet is deleted
+}
 ```
 
 ```java
