@@ -204,12 +204,12 @@ private AggregateReference<Pet, Long> pet; // Pet has no repository; nothing can
 
 ## Rule: One-to-many between two aggregates goes through a link entity
 
-When a one-to-many relationship must connect two **different aggregates** — the "many" side is another aggregate root — model it with an additional link entity backed by its own table, combining `@MappedCollection` and `AggregateReference`. This applies **regardless of where the holding side sits**:
+When a one-to-many relationship must connect two **different aggregates** — the "many" side is another aggregate root — model it with an additional link entity backed by its own table, combining `@MappedCollection` and `AggregateReference`. This applies **without exception** regardless of the holding side's role:
 
 - **root → root** — an aggregate root must point at many roots of another aggregate (e.g. `Order` → many `Product`);
-- **member → root** — an owned child inside one aggregate must point at many roots of another aggregate (e.g. `OrderItem`, owned by `Order`, → many `Warehouse`).
+- **member → root** — an owned child (member) inside one aggregate must point at many roots of another aggregate (e.g. `OrderItem`, owned by `Order`, → many `Warehouse`). The link entity becomes a nested owned child of the aggregate.
 
-The shape: the holding side owns a collection of link entities via `@MappedCollection`; each link entity carries an `AggregateReference<Target, IdType>` to the other aggregate root. The link entity is an owned child of the holding aggregate — no repository of its own, saved and deleted with the holder's root. This keeps both aggregate boundaries intact: the target root stays an independent aggregate, and the relationship itself lives inside the holder.
+The shape: the holding side (whether root or member) owns a collection of link entities via `@MappedCollection`; each link entity carries an `AggregateReference<Target, IdType>` to the other aggregate root. The link entity is an owned child of the holding aggregate's root — no repository of its own, saved and deleted with the holder's root. This keeps both aggregate boundaries intact: the target root stays an independent aggregate, and the relationship itself lives inside the holder's aggregate tree.
 
 This rule also applies when the request is phrased from the other side — "each Visit (root) is for one Pet (member of Owner)" is the same Pet → many Visits relationship read from the FK side. Do not flip the direction so that the root points at the member: that produces an illegal reference to a non-root (see "External references may only target aggregate roots" above). The collection of links always sits on the side that may legally hold it, even when the natural-language phrasing puts the FK on the other side.
 
@@ -236,10 +236,25 @@ public class Order {
 
 ```java
 // member → root: OrderItem is an owned child of Order and needs many Warehouse roots.
-// The link entity becomes a nested owned child of the Order aggregate.
+// The link entity (OrderItemWarehouseRef) becomes a nested owned child inside the Order aggregate.
 public class OrderItem {
+    @Id
+    private Long id;
+    
     @MappedCollection(idColumn = "order_item_id")
     private Set<OrderItemWarehouseRef> warehouses; // each holds AggregateReference<Warehouse, Long>
+}
+
+// The link entity is owned by OrderItem (which is owned by Order).
+// Order aggregate tree: Order → OrderItem → OrderItemWarehouseRef → (ref to Warehouse root)
+@Table("order_item_warehouse_ref")
+public class OrderItemWarehouseRef {
+    @Id
+    private Long id;
+    
+    @Column(value = "warehouse_id")
+    private AggregateReference<Warehouse, Long> warehouse;
+    // relationship attributes (quantity, location, ...) live here if needed
 }
 ```
 
@@ -249,6 +264,16 @@ public class OrderItem {
 // re-insert/delete Product rows and destroy Product's independent lifecycle
 @MappedCollection(idColumn = "order_id")
 private Set<Product> products;
+```
+
+```java
+// WRONG — @MappedCollection on a member pointing directly at another aggregate root:
+// OrderItem is already owned by Order; this would make Product doubly owned.
+// Always use a link entity between owned members and external roots.
+public class OrderItem {
+    @MappedCollection(idColumn = "order_item_id")
+    private Set<Warehouse> warehouses; // WRONG — use OrderItemWarehouseRef instead
+}
 ```
 
 ```java
