@@ -92,9 +92,21 @@ Before creating a new repository, call `list_entity_repositories` with `entityFq
 
 # Working with Aggregates
 
-When the task involves aggregate boundaries — adding `AggregateReference` fields, converting an owned `@MappedCollection` into a cross-aggregate link, splitting an aggregate, or answering "who references X?" / "what's inside aggregate Y?":
+When the task involves aggregate boundaries — adding `AggregateReference` fields, converting an owned `@MappedCollection` into a cross-aggregate link, splitting an aggregate, creating any relationship (including one-to-many, many-to-many) between entities, or answering "who references X?" / "what's inside aggregate Y?":
 
-1. If aggregate conventions have not been detected yet in this conversation — check memory (or earlier conversation turns — see "Harness compatibility") first. Otherwise read `references/aggregate-conventions.md` and follow all substeps there.
-2. Read `references/aggregate-rules-impl.md` and follow the rules there.
+1. **MANDATORY:** Read `references/aggregate-rules-impl.md` **first** and scan it for rules that apply to your specific relationship type. Do not proceed with entity modifications until you have confirmed which rule applies.
+2. If aggregate conventions have not been detected yet in this conversation — check memory (or earlier conversation turns — see "Harness compatibility") first. Otherwise read `references/aggregate-conventions.md` and follow all substeps there.
+3. Only after reading both reference files — proceed with entity modifications. Follow the rules there exactly.
 
 The MCP tool `get_jdbc_entity_details` is the source of truth for aggregate membership. Its response carries `aggregateRootFqn` (null if this entity is itself a root), `aggregates` (owned children, recursive — only populated for roots), and `referencedBy` (other aggregates linking here via `AggregateReference`). Read these before making any aggregate-boundary decision.
+
+---
+
+## Critical: One-to-many and many-to-many relationships
+
+**Any one-to-many or many-to-many relationship between different aggregates requires a link entity.** This is non-negotiable. Before implementing such a relationship:
+
+1. Verify from `get_jdbc_entity_details` (or by reading the entities) that both participants are aggregate roots or check their aggregate membership.
+2. If they are in **different aggregates**, you **must** create an intermediate link entity — do not use direct `@MappedCollection` pointing at another root.
+3. Read the specific rule in `references/aggregate-rules-impl.md` — section "Rule: One-to-many between two aggregates goes through a link entity" or "Rule: Many-to-many between two aggregates goes through a link entity".
+4. Follow the link-entity pattern exactly as documented: holding side owns link collection via `@MappedCollection`; each link entity carries `AggregateReference<Target, IdType>` to the target root.
