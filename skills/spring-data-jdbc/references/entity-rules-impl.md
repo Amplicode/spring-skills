@@ -364,6 +364,8 @@ private Set<Customer> customers;
 
 **Rule of thumb** — if the target type has its own repository, it is an aggregate root and must be reached via `AggregateReference`. When in doubt, call `get_jdbc_entity_details` on the target type: a non-null `aggregateRootFqn` means the target is an owned child; a null `aggregateRootFqn` means it is itself a root and must be linked via `AggregateReference`.
 
+**If the target is an owned child of another aggregate** (non-null `aggregateRootFqn`) — stop. This does **not** mean "fall back to a raw FK column"; referencing a member of another aggregate is not allowed in any shape (raw FK included — it is the same WRONG raw-FK example above, and it is invisible to `referencedBy` tooling). Read the rule "External references may only target aggregate roots" in `references/aggregate-rules-impl.md` and pick one of its three resolutions: re-frame the direction (the member side holds a link collection pointing at your root), promote the child to its own aggregate root, or reference the owning root instead.
+
 ---
 
 ## Records — extra notes

@@ -175,6 +175,153 @@ private Set<Customer> customers; // Customer is itself a root
 
 ---
 
+## Rule: External references may only target aggregate roots
+
+`AggregateReference<Target, IdType>` is only valid when `Target` is an aggregate root (`aggregateRootFqn == null`). When another aggregate needs to point at an **owned child** — e.g. `Visit` (root) must reference `Pet`, which is owned by `Owner` — that constraint does **not** license a fallback to a raw FK column. There is no legal shape for referencing a member of another aggregate; a raw `Long petId` is not a "canonical pattern for non-roots", it is the same raw-FK violation flagged above, and it is worse than invisible:
+
+- `referencedBy` in `get_jdbc_entity_details` only tracks `AggregateReference` fields, so every boundary check in this skill (including the "do not demote while `referencedBy` is non-empty" guard) silently stops seeing the link;
+- nothing ties the row to the aggregate contract — the owner root can be deleted (cascading its children away) while outside rows still point at the vanished member.
+
+Wanting to reference a non-root means one of three things is true. Pick one explicitly — and if the domain intent is unclear, ask the developer (AskUserQuestion in Claude Code; inline otherwise) instead of silently picking a shape:
+
+1. **The direction is framed wrong.** A "many-to-one from my root to their member" is usually a one-to-many *from their member to my root* read from the FK side (a JPA habit — in JPA the many side always holds the FK; here it must not). Re-frame and apply the one-to-many rule below with the member as the holder: e.g. `Pet` owns `Set<PetVisitRef>` via `@MappedCollection`, each entry holding `AggregateReference<Visit, Long>`.
+2. **The member is a root in disguise.** Being referenced from outside the aggregate is the classic signal of an independent lifecycle — the `@Embedded` rule below already states this for value objects, and it applies equally to owned children. Promote it via "Converting an owned child into a separate aggregate", then link with a plain `AggregateReference<Pet, Long>`.
+3. **The root is what you really mean.** If the outside aggregate needs the cluster rather than the specific member, reference the owning root (`AggregateReference<Owner, Long>`) and resolve member-level detail through the root at the service layer.
+
+```java
+// WRONG — raw FK to an owned child of another aggregate
+@Column(value = "pet_id")
+private Long petId; // Pet is owned by Owner: link invisible to tooling, dangles on Owner deletion
+```
+
+```java
+// WRONG — AggregateReference to a non-root
+@Column(value = "pet_id")
+private AggregateReference<Pet, Long> pet; // Pet has no repository; nothing can resolve this
+```
+
+---
+
+## Rule: One-to-many between two aggregates goes through a link entity
+
+When a one-to-many relationship must connect two **different aggregates** — the "many" side is another aggregate root — model it with an additional link entity backed by its own table, combining `@MappedCollection` and `AggregateReference`. This applies **regardless of where the holding side sits**:
+
+- **root → root** — an aggregate root must point at many roots of another aggregate (e.g. `Order` → many `Product`);
+- **member → root** — an owned child inside one aggregate must point at many roots of another aggregate (e.g. `OrderItem`, owned by `Order`, → many `Warehouse`).
+
+The shape: the holding side owns a collection of link entities via `@MappedCollection`; each link entity carries an `AggregateReference<Target, IdType>` to the other aggregate root. The link entity is an owned child of the holding aggregate — no repository of its own, saved and deleted with the holder's root. This keeps both aggregate boundaries intact: the target root stays an independent aggregate, and the relationship itself lives inside the holder.
+
+This rule also applies when the request is phrased from the other side — "each Visit (root) is for one Pet (member of Owner)" is the same Pet → many Visits relationship read from the FK side. Do not flip the direction so that the root points at the member: that produces an illegal reference to a non-root (see "External references may only target aggregate roots" above). The collection of links always sits on the side that may legally hold it, even when the natural-language phrasing puts the FK on the other side.
+
+```java
+// Link entity — owned child of the Order aggregate, its own table
+@Table("order_product_ref")
+public class OrderProductRef {
+    @Column(value = "product_id")
+    private AggregateReference<Product, Long> product;
+    // attributes of the relationship (quantity, addedAt, ...) live here if needed
+}
+```
+
+```java
+// root → root: Order (root) → many Product (root)
+public class Order {
+    @Id
+    private Long id;
+
+    @MappedCollection(idColumn = "order_id")
+    private Set<OrderProductRef> products;
+}
+```
+
+```java
+// member → root: OrderItem is an owned child of Order and needs many Warehouse roots.
+// The link entity becomes a nested owned child of the Order aggregate.
+public class OrderItem {
+    @MappedCollection(idColumn = "order_item_id")
+    private Set<OrderItemWarehouseRef> warehouses; // each holds AggregateReference<Warehouse, Long>
+}
+```
+
+```java
+// WRONG — @MappedCollection pointing directly at another aggregate root:
+// makes Product an owned child of Order, so saving an Order would
+// re-insert/delete Product rows and destroy Product's independent lifecycle
+@MappedCollection(idColumn = "order_id")
+private Set<Product> products;
+```
+
+```java
+// WRONG — a bag of raw FK ids: loses the typed link and the schema's FK intent
+private Set<Long> productIds;
+```
+
+If the relationship carries no attributes at all, a bare `Set<AggregateReference<Product, Long>>` under `@MappedCollection` (link table without a dedicated class) is an acceptable compact variant — but the explicit link entity is the default, because it survives the moment the relationship grows attributes without a schema-shape change.
+
+To query in the opposite direction ("which orders contain product X?"), write a `@Query` on the holder root's repository joining through the link table — do not add a repository for the link entity.
+
+---
+
+## Rule: Many-to-many between two aggregates goes through a link entity
+
+A many-to-many relationship between two aggregates follows the **same pattern** as the one-to-many rule above: an additional link entity with its own table, owned via `@MappedCollection`, carrying an `AggregateReference<Target, IdType>`. As with one-to-many, this applies regardless of whether the holding side is a root (root → root) or an owned member inside an aggregate (member → root).
+
+The Java shape is identical to the one-to-many link — what makes the relationship many-to-many is only that the same target root may appear in link rows of many holders. The one decision many-to-many adds is **which side owns the link collection**. Exactly one side does — pick the side from which the relationship is naturally created and modified in the domain (the side whose save should rewrite the link rows). The other side never gets a mirror collection; it reads the relationship through a query.
+
+```java
+// Link entity — owned child of the Student aggregate, its own table
+@Table("student_course_ref")
+public class StudentCourseRef {
+    @Column(value = "course_id")
+    private AggregateReference<Course, Long> course;
+    // attributes of the relationship (enrolledAt, grade, ...) live here if needed
+}
+```
+
+```java
+// Student (root) ↔ Course (root), owned from the Student side:
+// enrolling/unenrolling is done by mutating student.courses and saving the Student
+public class Student {
+    @Id
+    private Long id;
+
+    @MappedCollection(idColumn = "student_id")
+    private Set<StudentCourseRef> courses;
+}
+```
+
+```java
+// Course stays an independent root with NO collection back to Student.
+// "Who is enrolled in course X?" is a query on the owning side's repository:
+public interface StudentRepository extends CrudRepository<Student, Long> {
+    @Query("""
+        SELECT s.* FROM student s
+        JOIN student_course_ref scr ON scr.student_id = s.id
+        WHERE scr.course_id = :courseId
+        """)
+    List<Student> findAllByCourseId(Long courseId);
+}
+```
+
+```java
+// WRONG — mirror collections on both sides: two aggregates would both own
+// the same link table and overwrite each other's rows on save
+public class Course {
+    @MappedCollection(idColumn = "course_id")
+    private Set<CourseStudentRef> students; // the Student side already owns the link
+}
+```
+
+```java
+// WRONG — @MappedCollection pointing directly at the other root
+@MappedCollection(idColumn = "student_id")
+private Set<Course> courses; // would make every Course an owned child of one Student
+```
+
+When the relationship itself has an independent lifecycle — it is created/queried/modified on its own, from both sides, or carries substantial data (`Enrollment` with status, history, payments) — promote the link entity to its **own aggregate root** with two `AggregateReference` fields (`AggregateReference<Student, …>` + `AggregateReference<Course, …>`) and its own repository, and drop the `@MappedCollection` from both sides. At that point it is no longer a link table but a domain concept in its own right.
+
+---
+
 ## Rule: Converting an owned child into a separate aggregate
 
 When the project decides that an owned child must become its own aggregate (independent lifecycle, its own repository), the migration has four mandatory steps:
@@ -182,10 +329,7 @@ When the project decides that an owned child must become its own aggregate (inde
 1. Add `@Table("...")` (or `@Table(name = "...", schema = "...")`) to the child if missing, and ensure its `@Id` is in place — declared directly on the child, or inherited from a base class. The table likely already exists; the change is only on the Java side.
 2. Replace the parent's `@MappedCollection` field. The right shape depends on cardinality:
    - **Parent had a single child** — `AggregateReference<Child, IdType>` field on the parent. Straightforward.
-   - **Parent had a collection of children** — there is no single canonical "list of AggregateReferences" shape; pause and pick one of these explicitly:
-     - Invert the direction: drop the field on the parent and add `AggregateReference<Parent, IdType>` to the (now-independent) child aggregate. The "list" becomes a query on the child's repository.
-     - Introduce an explicit link entity (its own aggregate root with `AggregateReference<Parent, …>` and `AggregateReference<Child, …>` fields) when the relationship itself carries data.
-     - Only fall back to `Set<AggregateReference<Child, IdType>>` modelled as a `@MappedCollection`-backed link table on the parent's side if the relationship is intentionally a bag of opaque references with no other attributes — and confirm this with the developer first; it is rarely the right shape.
+   - **Parent had a collection of children** — this is now a one-to-many between two aggregates; apply the "One-to-many between two aggregates goes through a link entity" rule above: introduce a link entity owned by the parent via `@MappedCollection`, each entry holding `AggregateReference<Child, IdType>`. Inverting the direction instead (dropping the field on the parent and adding `AggregateReference<Parent, IdType>` to the now-independent child, with the "list" becoming a query on the child's repository) is acceptable only when the domain genuinely treats the child as pointing at the parent — confirm with the developer before choosing it.
 3. Create a `ChildRepository` extending the conventional base interface (Step 1.5 of repository conventions).
 4. Update every read/write path in the codebase: places that previously navigated `parent.getChildren()` now go through `childRepository`.
 
