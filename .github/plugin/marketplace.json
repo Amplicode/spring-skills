@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Best skills for Spring Boot development",
-    "version": "0.9.5"
+    "version": "0.9.6"
   },
   "plugins": [
     {
       "name": "spring-tools",
       "description": "Best skills for Spring Boot development",
-      "version": "0.9.5",
+      "version": "0.9.6",
       "source": "./"
     }
   ]
