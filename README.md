@@ -58,6 +58,7 @@ Full instructions: [Spring Agent Toolkit — connecting to AI agents](https://am
 | [`spring-security-configuration`](skills/spring-security-configuration/SKILL.md) | Generate Spring Security configuration for authentication, authorization, HTTP protection, and supporting beans/properties. | In progress |
 | [`kafka-configuration`](skills/kafka-configuration/SKILL.md) | Configure the Spring Boot Kafka starter via `application.properties` / `application.yml` and, when needed, generate a `KafkaConfiguration`. | Ready |
 | [`connekt-script-writer`](skills/connekt-script-writer/SKILL.md) | Write `.connekt.kts` scripts for Kotlin-based HTTP automation and endpoint testing. | Ready |
+| [`codefmt`](skills/codefmt/SKILL.md) | Reformat source code through IntelliJ IDEA/OpenIDE using the project's own code style settings and optimize imports for changed files. | Ready |
 | [`java-debug`](skills/java-debug/SKILL.md) | Debug Java applications via IntelliJ Debug MCP: breakpoints, debug sessions, stepping, evaluate expression, and stack inspection. | In progress |
 | [`amplicode-install`](skills/amplicode-install/SKILL.md) | Install the Amplicode IntelliJ plugin into supported IDEs and guide the user through Spring Agent setup. | Ready |
 
