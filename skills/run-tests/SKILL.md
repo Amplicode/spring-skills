@@ -4,9 +4,7 @@ description: >-
   Run a Gradle project's tests by test type or module — unit, integration, or
   all. Use this skill whenever the user wants to run, re-run, or check the
   project's tests (e.g. "run the unit tests", "run all tests", "run the
-  integration tests for the vet module", "did the tests pass?"). Gradle only —
-  it drives Gradle tasks either through the IDE or a console fallback, and does
-  not support Maven.
+  integration tests for the vet module", "did the tests pass?").
 ---
 
 # Run tests

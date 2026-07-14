@@ -60,6 +60,7 @@ Create a Connekt script that tests the visit creation API.
 | [`connekt-script-writer`](skills/connekt-script-writer/SKILL.md) | Писать `.connekt.kts` scripts для Kotlin-based HTTP automation и тестирования эндпоинтов. | Готов |
 | [`codefmt`](skills/codefmt/SKILL.md) | Форматировать исходный код через IntelliJ IDEA/OpenIDE с использованием code style проекта и оптимизировать imports в изменённых файлах. | Готов |
 | [`run-tests`](skills/run-tests/SKILL.md) | Запускать тесты Gradle-проекта по типу (unit, integration, all) или модулю — через IDE или консольный fallback — и возвращать компактный отчёт pass/fail. | Готов |
+| [`coverage`](skills/coverage/SKILL.md) | Измерять покрытие кода проекта — целиком (unit + integration вместе) либо только по одной тестовой группе: package/class glob или подпроект — и возвращать число покрытия. | Готов |
 | [`java-debug`](skills/java-debug/SKILL.md) | Отлаживать Java-приложения через IntelliJ Debug MCP: breakpoints, debug sessions, stepping, evaluate expression и stack inspection. | В разработке |
 | [`amplicode-install`](skills/amplicode-install/SKILL.md) | Установить Amplicode IntelliJ plugin в поддерживаемые IDE и провести пользователя через настройку Spring Agent. | Готов |
 

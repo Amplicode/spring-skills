@@ -17,11 +17,30 @@ step 3 writes). If it already names a configuration for the requested
 type/module, skip to step 4 with that `CONFIG_NAME`.
 
 ### 3. Inspect and match (first use, or when memory has no match)
-Send the script with `ACTION = "inspect"`. It runs nothing and returns JSON
-listing every Run Configuration with its `name`, `typeId`, `isGradle`, `tasks`,
-`scriptParams`, and `module`. Judging by what each actually runs (the tasks
-matter more than the name), build a short report mapping each requested test type
-to the configuration(s) that fit it:
+Send the script with `ACTION = "inspect"`. It runs nothing and returns JSON with
+`configurations` (every Run Configuration with its `name`, `typeId`, `isGradle`,
+`tasks`, `scriptParams`, `module`) and `gradleTasks` (the build's test-suite tasks
+with `group` and `description`).
+
+**Suites** — everything step 4 runs must come from `gradleTasks`; never assume a
+name. Only `test` is a Gradle convention; extra suites are invented per project, so
+read the descriptions and map each requested type to a real task:
+
+```
+unit        -> test        "Runs the test suite."
+integration -> testIntgr   "Runs the test intgr suite."      (elsewhere: integrationTest, e2e, …)
+all         -> every suite task found
+```
+
+The task name doubles as the source set — the JUnit XML lands in
+`build/test-results/<task>` — which is what `RESULT_SOURCESET` needs in step 4.
+Ignore anything that measures rather than runs (e.g. `jacoco*`, `pitest`); its
+description gives it away. If a requested type has no matching task, say so — do
+not guess one.
+
+**Configuration** — judging by what each actually runs (the tasks matter more than
+the name), build a short report mapping each requested test type to the
+configuration(s) that fit it:
 
 ```
 unit        -> Unit Tests
@@ -77,14 +96,17 @@ collecting in one subagent keeps the launch, the wait, and the long JUnit output
 out of the main context.
 
 Config parameters to resolve and pass to the subagent (the CONFIG block of the
-script):
+script). Every task named below comes from step 3's `gradleTasks` — nothing is
+assumed:
 
 - `CONFIG_NAME` — reuse the config with this exact name if present, else create
   it. Convention for new names: `"<Module> <Type> Tests"` (module omitted when
   whole-project) — `Unit Tests`, `Integration Tests`, `All Tests`,
   `vet Integration Tests`, `web Unit Tests`.
-- `GRADLE_TASKS` — the type's tasks (`["test"]`, `["testIntgr"]`, `["test",
-  "testIntgr"]`); prefix a subproject path for a module (`[":web:test"]`).
+- `GRADLE_TASKS` — the suite task(s) the requested type resolved to in step 3: one
+  for a single type, every discovered suite for `all`. Prefix a subproject path for
+  a module (`[":web:<suite>"]`). In this project that reads `["test"]` for unit,
+  `["testIntgr"]` for integration, both for `all`.
 - `TESTS_FILTER` — a package/class glob to narrow the run (→ `--tests`), e.g.
   `ru.openide.petclinic.vet.*`; empty for the whole task.
 - `RERUN` (default true) — adds `--rerun-tasks` so tests actually execute even
@@ -96,8 +118,10 @@ script):
   tab).
 - `PERSIST` (default true) — save into `.idea/runConfigurations` (survives IDE
   restart, shows in the ▶ list); false = transient, this session only.
-- `RESULT_SOURCESET` — the source set to read results from: `test` for unit,
-  `testIntgr` for integration (for `all`, run + collect once per source set).
+- `RESULT_SOURCESET` — the source set to read results from. It is the suite task's
+  own name (its XML lands in `build/test-results/<task>`), so use the task resolved
+  above — `test` for unit here, `testIntgr` for integration. For `all`, run +
+  collect once per suite.
 
 Task for the subagent — call steroid `steroid_execute_code` with
 `scripts/run_tests_in_ide.kts` TWICE, same CONFIG block:

@@ -5,8 +5,10 @@
 // It supports these ACTIONs, selected by the ACTION constant below:
 //   "inspect" — list every existing Run Configuration (name, type, tasks, module,
 //               test filters) so the caller can decide whether a suitable one
-//               already exists. Runs NOTHING. Use this on the FIRST use in a
-//               project, before creating anything.
+//               already exists, PLUS the build's test-suite tasks (gradleTasks:
+//               name, group, description) so the caller picks real task names
+//               instead of assuming them. Runs NOTHING. Use this on the FIRST use
+//               in a project, before creating anything.
 //   "run"     — ensure a configuration matching the request exists (reuse the one
 //               named CONFIG_NAME if present, otherwise create it from the CONFIG
 //               block), then launch it in its own Run tab.
@@ -25,6 +27,9 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.externalSystem.model.ProjectKeys
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -98,8 +103,40 @@ if (ACTION == "inspect") {
             "\"scriptParams\":\"${esc(script)}\",\"module\":\"${esc(moduleHint)}\"}"
         )
     }
+    // Discover the build's test-suite tasks, with their descriptions, so the caller
+    // picks from what this project ACTUALLY has instead of assuming names. Only
+    // `test` is a Gradle convention: extra suites are invented per project (here a
+    // JVM Test Suite adds `testIntgr`; elsewhere it may be `integrationTest`, `e2e`,
+    // …). The same name doubles as the source set, i.e. where the JUnit XML lands
+    // (build/test-results/<name>), which is what RESULT_SOURCESET needs.
+    val taskEntries = mutableListOf<String>()
+    val projectData = ProjectDataManager.getInstance()
+        .getExternalProjectData(project, GradleConstants.SYSTEM_ID, basePath)
+    val structure = projectData?.externalProjectStructure
+    if (structure != null) {
+        ExternalSystemApiUtil.findAll(structure, ProjectKeys.MODULE).forEach { m ->
+            ExternalSystemApiUtil.findAll(m, ProjectKeys.TASK)
+                .map { it.data }
+                .filter { td ->
+                    val n = td.name.substringAfterLast(':').lowercase()
+                    // A test suite: a "test"-ish task in the verification group.
+                    // *Classes tasks only compile; jacoco* ones measure, not run.
+                    td.group == "verification" && n.contains("test") &&
+                        !n.endsWith("classes") && !n.contains("jacoco")
+                }
+                .forEach { td ->
+                    taskEntries.add(
+                        "{\"name\":\"${esc(td.name)}\",\"module\":\"${esc(m.data.externalName)}\"," +
+                        "\"group\":\"${esc(td.group ?: "")}\"," +
+                        "\"description\":\"${esc(td.description ?: "")}\"}"
+                    )
+                }
+        }
+    }
+
     out.append("{\"action\":\"inspect\",\"projectRoot\":\"${esc(basePath)}\"," +
-        "\"configurations\":[${entries.joinToString(",")}]}")
+        "\"configurations\":[${entries.joinToString(",")}]," +
+        "\"gradleTasks\":[${taskEntries.joinToString(",")}]}")
     println(out.toString())
 } else if (ACTION == "run") {
     val gradleType = ConfigurationType.CONFIGURATION_TYPE_EP.extensionList
