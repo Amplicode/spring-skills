@@ -45,9 +45,6 @@ which. None → the project has no baseline; measure and report the number with 
 verdict (`no-baseline`). Remember the answer (step 3's memory block) — it is only
 searched for once. A baseline is a project invention, so never assume a path.
 
-**Configuration** — judging by the tasks (they matter more than the name), look for
-one that already measures what's being asked:
-
 **Configuration** — match against the roles resolved above. With the report task
 `R` and the discovered suites `S1, S2, …`:
 
@@ -162,15 +159,12 @@ Task for the subagent — THREE steroid `steroid_execute_code` calls:
 
    Leave `EXEC_REL_PATH = ""` and pass `NEWER_THAN_MS = <startedAtMs from step 1>`.
    That shows the `.exec` THIS run produced. Do not name a file: which `.exec` a
-   build writes is project-specific — a merged one exists only where the build
-   defines a merge task (here `jacocoMerge` → `merged.exec`), otherwise there is
-   just the per-suite `test.exec`. The newest file this run wrote is the one the
+   build writes is project-specific. The newest file this run wrote is the one the
    report was built from either way.
 
    `NEWER_THAN_MS` is what makes "this run" true: an aborted earlier run can leave a
    per-suite `.exec` newer than the good one, and without the filter the panel would
-   show that instead (hit live — auto-discovery activated `test.exec` from an
-   aborted run while the number came from an older `merged.exec`).
+   show that instead.
 
    Skip this step only when `reportFound: false` — a run that died before the
    report produced no fresh `.exec` worth showing.

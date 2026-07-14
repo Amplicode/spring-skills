@@ -66,8 +66,8 @@ val BASELINE_FILE = ""   // e.g. "config/jacoco/coverage-baseline.properties"
 val BASELINE_KEY = ""    // e.g. "coverage.instruction.minimum"
 
 // Gradle task(s) that produce coverage. NEVER coverageRatchet — see below.
-//   whole project  -> ["jacocoTestReport"]  (dependsOn jacocoMerge, which dependsOn
-//                     test + testIntgr, so ONE run executes both suites, merges the
+//   whole project  -> ["jacocoTestReport"]  (pulls in every test suite through its
+//                     own dependencies, so ONE run executes them all, merges the
 //                     .exec files and writes the XML that "results" reads)
 //   one test group -> ["test", "jacocoTestReport"] + TESTS_FILTER
 //
@@ -81,9 +81,9 @@ val BASELINE_KEY = ""    // e.g. "coverage.instruction.minimum"
 val GRADLE_TASKS = listOf("jacocoTestReport")
 
 // Restrict the run to ONE test TYPE by excluding the other suite's task (Gradle's
-// -x). Both suites feed jacocoMerge, so excluding is the only way to measure a
+// -x). Every suite feeds the report, so excluding is the only way to measure a
 // single type — asking for ["test", "jacocoTestReport"] alone still drags testIntgr
-// in through the jacocoMerge dependency.
+// in through the report task's dependencies.
 //   all types (default) -> emptyList()
 //   unit only           -> listOf("testIntgr")
 //   integration only    -> listOf("test")
@@ -97,7 +97,7 @@ val TESTS_FILTER = ""
 
 // Delete build/jacoco/*.exec before launching so the report reflects ONLY the tests
 // this run executes. REQUIRED whenever the run is narrowed at all — by
-// EXCLUDE_TASKS or TESTS_FILTER: jacocoMerge merges EVERY .exec under
+// EXCLUDE_TASKS or TESTS_FILTER: the report merges EVERY .exec under
 // build/jacoco/, so the excluded suite's stale .exec from an earlier full run would
 // silently be counted anyway, and the "unit only" number would quietly include the
 // integration tests.
@@ -175,9 +175,9 @@ if (ACTION == "inspect") {
     // Discover the project's coverage/test Gradle tasks, with their descriptions, so
     // the caller picks from what this build ACTUALLY has instead of assuming names.
     // Task names here are a per-project matter: the report task is conventional
-    // (jacocoTestReport), but suites and gate tasks are not — this build has an extra
-    // testIntgr suite, a jacocoMerge, and a coverageRatchet, none of which a plain
-    // JaCoCo project would have.
+    // (jacocoTestReport), but suites, merge and gate tasks are not — this build has
+    // an extra testIntgr suite and a coverageRatchet, none of which a plain JaCoCo
+    // project would have.
     val taskEntries = mutableListOf<String>()
     val projectData = ProjectDataManager.getInstance()
         .getExternalProjectData(project, GradleConstants.SYSTEM_ID, basePath)
