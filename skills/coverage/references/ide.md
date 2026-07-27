@@ -128,13 +128,14 @@ script):
 - `CLEAN_EXEC` — TRUE whenever the run is narrowed at all (`EXCLUDE_TASKS` or
   `TESTS_FILTER` set), false for `all`. Otherwise the excluded suite's stale
   `.exec` is picked up anyway.
-
-Never put a gate task in `GRADLE_TASKS` — measuring must not mutate the repo or go
-red (SKILL.md).
 - `RERUN` (default true) — adds `--rerun-tasks`; without it Gradle may report
   UP-TO-DATE and collect no coverage.
 - `NEW_TAB_PER_RUN` (default true) — each launch opens a NEW tab.
 - `PERSIST` (default true) — save into `.idea/runConfigurations`.
+
+Never put a gate task in `GRADLE_TASKS` — measuring must not mutate the repo or go
+red (SKILL.md).
+
 Task for the subagent — THREE steroid `steroid_execute_code` calls:
 
 1. `scripts/coverage_in_ide.kts` with `ACTION = "run"` — deletes the previous XML
