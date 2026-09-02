@@ -61,6 +61,7 @@ Full instructions: [Spring Agent Toolkit — connecting to AI agents](https://am
 | [`codefmt`](skills/codefmt/SKILL.md) | Reformat source code through IntelliJ IDEA/OpenIDE using the project's own code style settings and optimize imports for changed files. | Ready |
 | [`run-tests`](skills/run-tests/SKILL.md) | Run a Gradle project's tests by type (unit, integration, all) or module, through the IDE or a console fallback, and report a compact pass/fail result. | Ready |
 | [`coverage`](skills/coverage/SKILL.md) | Measure a project's code coverage — the whole project (unit + integration merged) or just one test group, a package/class glob or a subproject — and report the coverage number. | Ready |
+| [`mutation-testing`](skills/mutation-testing/SKILL.md) | Set up and run PIT (pitest) mutation testing on a Gradle project, tune what gets mutated, and report the mutation score with an explanation of surviving mutants. | Ready |
 | [`java-debug`](skills/java-debug/SKILL.md) | Debug Java applications via IntelliJ Debug MCP: breakpoints, debug sessions, stepping, evaluate expression, and stack inspection. | In progress |
 | [`amplicode-install`](skills/amplicode-install/SKILL.md) | Install the Amplicode IntelliJ plugin into supported IDEs and guide the user through Spring Agent setup. | Ready |
 
