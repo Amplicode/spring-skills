@@ -19,8 +19,11 @@ grep -n "JavaLanguageVersion\|sourceCompatibility" build.gradle
 ```
 
 **JUnit Platform version** — Platform 6 (Spring Boot 4) is ahead of every released
-`pitest-junit5-plugin`. It works, and it is the first thing to suspect if an
-exotic test style fails later.
+`pitest-junit5-plugin`. The bridge still works, but the run needs three environment
+fixes that all fail silently — the worst just reports every class as `NO_COVERAGE`,
+which reads as success. If this command shows `junit-platform-commons` at **6.x**,
+treat `references/junit6.md` as part of this setup, applied while you write the
+`pitest {}` block, not as an afterthought.
 
 ```bash
 ./gradlew -q dependencyInsight --configuration testRuntimeClasspath \
@@ -90,6 +93,13 @@ pitest {
     mutationThreshold = 0
 }
 ```
+
+This block is the baseline that runs as-is on **JUnit Platform 5**. The stack above
+(Spring Boot 4) is actually Platform **6**, and on Platform 6 the block is not enough
+on its own: it needs a `jvmPath`, three JUnit 6 deps on the `pitest` configuration,
+and a launcher `dependencySubstitution` — all in `references/junit6.md`. Without
+them the first run is silently all-`NO_COVERAGE`, so apply that reference now, before
+running, whenever step 1 saw `junit-platform-commons` at 6.x.
 
 Four of these are decisions rather than defaults:
 
