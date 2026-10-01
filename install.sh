@@ -2,8 +2,8 @@
 
 set -e
 
-PATH=$($SHELL -l -c 'echo $PATH' 2>/dev/null || echo "$PATH")
-export PATH
+# Fallback to standard system paths if PATH is empty or missing essentials
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
 
 REPO_URL="https://github.com/Amplicode/spring-skills.git"
 BASE_DIR="$HOME/.agents"
@@ -12,6 +12,7 @@ AGENTS_SKILLS_DIR="$BASE_DIR/skills"
 QWEN_SKILLS_DIR="$HOME/.qwen/skills"
 KILO_SKILLS_DIR="$HOME/.kilocode/skills"
 VEAI_SKILLS_DIR="$HOME/.veai/skills"
+GEMINI_SHARED_SKILLS_DIR="$HOME/.gemini/skills"
 
 echo "== Amplicode Spring Skills Installer =="
 
@@ -43,7 +44,30 @@ for skill_path in "$REPO_DIR/skills/"*; do
   echo "  ✔ $skill_name"
 done
 
-echo "✅ Skills ready (Codex, OpenCode, Gemini CLI)"
+echo "✅ Skills ready (Codex, OpenCode)"
+
+# --- Antigravity CLI (Gemini) ---
+ANTIGRAVITY_SKILLS_DIR="$HOME/.gemini/antigravity-cli/skills"
+
+if [ -d "$HOME/.gemini" ] || command -v antigravity >/dev/null 2>&1; then
+  echo "🔗 Creating/updating symlinks in ~/.gemini/antigravity-cli/skills/..."
+  mkdir -p "$ANTIGRAVITY_SKILLS_DIR"
+
+  for skill_path in "$REPO_DIR/skills/"*; do
+    [ -d "$skill_path" ] || continue
+    skill_name=$(basename "$skill_path")
+    target_link="$ANTIGRAVITY_SKILLS_DIR/$skill_name"
+
+    if [[ -L "$target_link" || -e "$target_link" ]]; then
+      rm -rf "$target_link"
+    fi
+
+    ln -s "$skill_path" "$target_link"
+    echo "  ✔ $skill_name"
+  done
+
+  echo "✅ Antigravity CLI skills ready"
+fi
 
 # --- KiloCode: symlinks to ~/.kilocode/skills/ ---
 if [ -d "$HOME/.kilocode" ]; then
@@ -132,3 +156,4 @@ if command -v copilot >/dev/null 2>&1; then
 fi
 
 echo "🎉 Done"
+
